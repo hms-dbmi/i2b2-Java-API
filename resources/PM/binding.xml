@@ -1,0 +1,9 @@
+<jaxb:bindings xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  version="1.0">
+  <jaxb:bindings schemaLocation="PM_USER.xsd">
+    <jaxb:bindings node="//xs:element[@name='response']">
+      <jaxb:factoryMethod name="ResponseString"/>
+    </jaxb:bindings>
+  </jaxb:bindings>
+</jaxb:bindings>
