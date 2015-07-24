@@ -27,4 +27,19 @@ Download the jar file, and dependent jars located here in the target, and target
 
 ## Examples
 
-Two examples can be found in the examples directory
+Two examples can be found in the samples directory
+
+## FAQ
+
+### Where can I find more information about i2b2?
+
+Visit: http://www.i2b2.org
+
+### Is this an i2b2 project?
+
+No, this is a separate and unaffiliated project that is meant to help people who want to use i2b2. 
+
+### I found a bug, now what?
+
+Create an issue on GitHub. Or even better try to fix it and submit your patch.
+
