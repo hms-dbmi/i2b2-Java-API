@@ -22,11 +22,6 @@ import javax.xml.bind.annotation.XmlElementDecl;
 import javax.xml.bind.annotation.XmlRegistry;
 import javax.xml.namespace.QName;
 
-import edu.harvard.hms.dbmi.i2b2.api.ont.xml.ValueMetadataType.CommentsDetermingExclusion;
-import edu.harvard.hms.dbmi.i2b2.api.ont.xml.ValueMetadataType.EnumValues;
-import edu.harvard.hms.dbmi.i2b2.api.ont.xml.ValueMetadataType.UnitValues;
-import edu.harvard.hms.dbmi.i2b2.api.ont.xml.ValueMetadataType.UnitValues.ConvertingUnits;
-
 
 /**
  * This object contains factory methods for each 
@@ -87,6 +82,14 @@ public class ObjectFactory {
      */
     public ConditionsType createConditionsType() {
         return new ConditionsType();
+    }
+    
+    /**
+     * Create an instance of {@link PasswordType }
+     * 
+     */
+    public PasswordType createPasswordType() {
+        return new PasswordType();
     }
 
     /**

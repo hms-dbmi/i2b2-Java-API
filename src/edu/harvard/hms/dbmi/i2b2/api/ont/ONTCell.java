@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.GregorianCalendar;
-import java.util.Map;
 
 import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBContext;
@@ -36,6 +35,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 
+import edu.harvard.hms.dbmi.i2b2.api.Cell;
 import edu.harvard.hms.dbmi.i2b2.api.exception.I2B2InterfaceException;
 import edu.harvard.hms.dbmi.i2b2.api.ont.xml.ApplicationType;
 import edu.harvard.hms.dbmi.i2b2.api.ont.xml.BodyType;
@@ -59,6 +59,7 @@ import edu.harvard.hms.dbmi.i2b2.api.ont.xml.ModifyChildType;
 import edu.harvard.hms.dbmi.i2b2.api.ont.xml.ObjectFactory;
 import edu.harvard.hms.dbmi.i2b2.api.ont.xml.OntologyProcessStatusListType;
 import edu.harvard.hms.dbmi.i2b2.api.ont.xml.OntologyProcessStatusType;
+import edu.harvard.hms.dbmi.i2b2.api.ont.xml.PasswordType;
 import edu.harvard.hms.dbmi.i2b2.api.ont.xml.RequestHeaderType;
 import edu.harvard.hms.dbmi.i2b2.api.ont.xml.RequestMessageType;
 import edu.harvard.hms.dbmi.i2b2.api.ont.xml.ResponseMessageType;
@@ -77,33 +78,74 @@ import edu.harvard.hms.dbmi.i2b2.api.ont.xml.GetOntProcessStatusType.ProcessStar
  * @author Jeremy R. Easton-Marks
  *
  */
-public class ONTCell {
+public class ONTCell implements Cell {
 	private static JAXBContext ontJC;
 	private static Marshaller ontMarshaller;
 	private static ObjectFactory ontOF;
-
+	private String domain;
+	private String userName;
+	private String password;
+	private String projectId;
 	private String connectionURL;
-	private Map<String, String> parameters;
+	
+	private String token;
+	private long timeout;
 
 	/**
+	 * 
 	 * Sets up all the needed parameters to communicate with the Ontology
 	 * Management Cell
 	 * 
-	 * @param parameters
-	 *            Setup parameters
+	 * @param connectionURL
+	 *            URL of the cell
+	 * @param domain
+	 *            Domain
+	 * @param userName
+	 *            User name
+	 * @param password
+	 *            Password
+	 * @param projectId
+	 *            Project Id
 	 * @throws JAXBException
 	 *             An Exception Occurred
 	 */
-	public void setup(Map<String, String> parameters) throws JAXBException {
+	public void setup(String connectionURL, String domain, String userName,
+			String password, String projectId) throws JAXBException {
 		// Setup Parameters
-		connectionURL = parameters.get("ONTConnectionURL");
+		this.connectionURL = connectionURL;
+		this.domain = domain;
+		this.userName = userName;
+		this.password = password;
+		this.projectId = projectId;
+
+		// Setup System
+		setup();
+	}
+
+	/**
+	 * Sets up the system without any parameters of the Ontology Management Cell
+	 * 
+	 * @throws JAXBException
+	 */
+	public void setup() throws JAXBException {
 		// Setup System
 		ontOF = new ObjectFactory();
 		ontJC = JAXBContext
 				.newInstance("edu.harvard.hms.dbmi.i2b2.api.ont.xml");
 		ontMarshaller = ontJC.createMarshaller();
 		ontMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-		this.parameters = parameters;
+	}
+	
+	public void setup(String connectionURL, String domain, String userName, String token, long timeout, String project) throws JAXBException {
+		this.connectionURL = connectionURL;
+		this.domain = domain;
+		this.userName = userName;
+		this.token = token;
+		this.timeout = timeout;
+		this.projectId = project;
+		
+		// Setup System
+		setup();
 	}
 
 	/**
@@ -151,7 +193,8 @@ public class ONTCell {
 		StringWriter sw = new StringWriter();
 		ontMarshaller.marshal(ontOF.createRequest(rmt), sw);
 
-		return getType(ontOF.createConceptsType(), runRequest(client, sw.toString(), "/getCategories"));
+		return getType(ontOF.createConceptsType(),
+				runRequest(client, sw.toString(), "/getCategories"));
 
 	}
 
@@ -207,27 +250,42 @@ public class ONTCell {
 		StringWriter sw = new StringWriter();
 		ontMarshaller.marshal(ontOF.createRequest(rmt), sw);
 
-		return getType(ontOF.createConceptsType(), runRequest(client, sw.toString(), "/getChildren"));
+		return getType(ontOF.createConceptsType(),
+				runRequest(client, sw.toString(), "/getChildren"));
 	}
 
 	/**
-	 * Gets name information 
+	 * Gets name information
 	 * 
-	 * @param client HTTPClient
-	 * @param blob Return data stored as Blob or Clob
-	 * @param category Category to search on
-	 * @param hidden Return hidden data
-	 * @param strategy Strategy used for matching
-	 * @param matchStr String to match on
-	 * @param max Maximum results to return
-	 * @param self Self
-	 * @param synonyms Return synonyms
-	 * @param type Sets type of categories
+	 * @param client
+	 *            HTTPClient
+	 * @param blob
+	 *            Return data stored as Blob or Clob
+	 * @param category
+	 *            Category to search on
+	 * @param hidden
+	 *            Return hidden data
+	 * @param strategy
+	 *            Strategy used for matching
+	 * @param matchStr
+	 *            String to match on
+	 * @param max
+	 *            Maximum results to return
+	 * @param self
+	 *            Self
+	 * @param synonyms
+	 *            Return synonyms
+	 * @param type
+	 *            Sets type of categories
 	 * @return Name information
-	 * @throws JAXBException A XML processing exception occurred
-	 * @throws UnsupportedOperationException An unsupported operation exception occurred
-	 * @throws I2B2InterfaceException An error occurred on the i2b2 server
-	 * @throws IOException An IO exception occurred
+	 * @throws JAXBException
+	 *             A XML processing exception occurred
+	 * @throws UnsupportedOperationException
+	 *             An unsupported operation exception occurred
+	 * @throws I2B2InterfaceException
+	 *             An error occurred on the i2b2 server
+	 * @throws IOException
+	 *             An IO exception occurred
 	 */
 	public ConceptsType getNameInfo(HttpClient client, boolean blob,
 			String category, boolean hidden, String strategy, String matchStr,
@@ -256,28 +314,40 @@ public class ONTCell {
 		StringWriter sw = new StringWriter();
 		ontMarshaller.marshal(ontOF.createRequest(rmt), sw);
 
-		return getType(ontOF.createConceptsType(), runRequest(client, sw.toString(), "/getNameInfo"));
+		return getType(ontOF.createConceptsType(),
+				runRequest(client, sw.toString(), "/getNameInfo"));
 
 	}
 
 	/**
 	 * Gets the term information
 	 * 
-	 * @param client HTTP Client
-	 * @param blob Return data stored as Blob or Clob
-	 * @param category Category to search on
-	 * @param hidden Return hidden data
-	 * @param max Maximum results to return
-	 * @param synonyms Return synonyms
-	 * @param type Sets type of categories
+	 * @param client
+	 *            HTTP Client
+	 * @param blob
+	 *            Return data stored as Blob or Clob
+	 * @param self
+	 *            self to search on
+	 * @param hidden
+	 *            Return hidden data
+	 * @param max
+	 *            Maximum results to return
+	 * @param synonyms
+	 *            Return synonyms
+	 * @param type
+	 *            Sets type of categories
 	 * @return Term information
-	 * @throws JAXBException An XML Processing Exception occurred
-	 * @throws UnsupportedOperationException An unsupported operation exception occurred
-	 * @throws I2B2InterfaceException An error occurred on the i2b2 server
-	 * @throws IOException An IO Exception occurred
+	 * @throws JAXBException
+	 *             An XML Processing Exception occurred
+	 * @throws UnsupportedOperationException
+	 *             An unsupported operation exception occurred
+	 * @throws I2B2InterfaceException
+	 *             An error occurred on the i2b2 server
+	 * @throws IOException
+	 *             An IO Exception occurred
 	 */
 	public ConceptsType getTermInfo(HttpClient client, boolean blob,
-			String category, boolean hidden, int max, boolean synonyms,
+			String self, boolean hidden, int max, boolean synonyms,
 			String type) throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
 		RequestMessageType rmt = createMinimumBaseMessage();
@@ -288,27 +358,36 @@ public class ONTCell {
 		gtit.setSynonyms(synonyms);
 		gtit.setType(type);
 		gtit.setMax(max);
-
+		gtit.setSelf(self);
+		
 		rmt.getMessageBody().getAny().add(ontOF.createGetTermInfo(gtit));
 
 		// Mashall the XML to String and attach it to the post request
 		StringWriter sw = new StringWriter();
 		ontMarshaller.marshal(ontOF.createRequest(rmt), sw);
 
-		return getType(ontOF.createConceptsType(), runRequest(client, sw.toString(), "/getTermInfo"));
+		return getType(ontOF.createConceptsType(),
+				runRequest(client, sw.toString(), "/getTermInfo"));
 	}
 
 	/**
 	 * Gets the schemes
 	 * 
-	 * @param client HTTP Client
-	 * @param blob Return data stored as Blob or Clob
-	 * @param type Sets type of categories
+	 * @param client
+	 *            HTTP Client
+	 * @param blob
+	 *            Return data stored as Blob or Clob
+	 * @param type
+	 *            Sets type of categories
 	 * @return Schemes
-	 * @throws JAXBException An XML Processing Exception occurred
-	 * @throws UnsupportedOperationException An unsupported operation exception occurred
-	 * @throws I2B2InterfaceException An error occurred on the i2b2 server
-	 * @throws IOException An IO Exception occurred
+	 * @throws JAXBException
+	 *             An XML Processing Exception occurred
+	 * @throws UnsupportedOperationException
+	 *             An unsupported operation exception occurred
+	 * @throws I2B2InterfaceException
+	 *             An error occurred on the i2b2 server
+	 * @throws IOException
+	 *             An IO Exception occurred
 	 */
 	public ConceptsType getSchemes(HttpClient client, boolean blob, String type)
 			throws JAXBException, UnsupportedOperationException,
@@ -325,27 +404,42 @@ public class ONTCell {
 		StringWriter sw = new StringWriter();
 		ontMarshaller.marshal(ontOF.createRequest(rmt), sw);
 
-		return getType(ontOF.createConceptsType(), runRequest(client, sw.toString(), "/getSchemes"));
+		return getType(ontOF.createConceptsType(),
+				runRequest(client, sw.toString(), "/getSchemes"));
 	}
 
 	/**
 	 * Gets the code information
 	 * 
-	 * @param client HTTP Client
-	 * @param blob Return data stored as Blob or Clob
-	 * @param category Category to search on
-	 * @param hidden Return hidden data
-	 * @param strategy Strategy used for matching
-	 * @param matchStr String to match on
-	 * @param max Maximum results to return
-	 * @param self Self
-	 * @param synonyms Return synonyms
-	 * @param type Sets type of categories
+	 * @param client
+	 *            HTTP Client
+	 * @param blob
+	 *            Return data stored as Blob or Clob
+	 * @param category
+	 *            Category to search on
+	 * @param hidden
+	 *            Return hidden data
+	 * @param strategy
+	 *            Strategy used for matching
+	 * @param matchStr
+	 *            String to match on
+	 * @param max
+	 *            Maximum results to return
+	 * @param self
+	 *            Self
+	 * @param synonyms
+	 *            Return synonyms
+	 * @param type
+	 *            Sets type of categories
 	 * @return Code Information
-	 * @throws JAXBException An XML Processing Exception occurred
-	 * @throws UnsupportedOperationException An unsupported operation exception occurred
-	 * @throws I2B2InterfaceException An error occurred on the i2b2 server
-	 * @throws IOException An IO Exception occurred
+	 * @throws JAXBException
+	 *             An XML Processing Exception occurred
+	 * @throws UnsupportedOperationException
+	 *             An unsupported operation exception occurred
+	 * @throws I2B2InterfaceException
+	 *             An error occurred on the i2b2 server
+	 * @throws IOException
+	 *             An IO Exception occurred
 	 */
 	public ConceptsType getCodeInfo(HttpClient client, boolean blob,
 			String category, boolean hidden, String strategy, String matchStr,
@@ -374,18 +468,25 @@ public class ONTCell {
 		StringWriter sw = new StringWriter();
 		ontMarshaller.marshal(ontOF.createRequest(rmt), sw);
 
-		return getType(ontOF.createConceptsType(), runRequest(client, sw.toString(), "/getCodeInfo"));
+		return getType(ontOF.createConceptsType(),
+				runRequest(client, sw.toString(), "/getCodeInfo"));
 	}
 
 	/**
 	 * Adds a child
 	 * 
-	 * @param client HTTP Client
-	 * @param conceptType Concept Type
-	 * @throws JAXBException An XML Processing Exception occurred
-	 * @throws UnsupportedOperationException An unsupported operation exception occurred
-	 * @throws I2B2InterfaceException An error occurred on the i2b2 server
-	 * @throws IOException An IO Exception occurred
+	 * @param client
+	 *            HTTP Client
+	 * @param conceptType
+	 *            Concept Type
+	 * @throws JAXBException
+	 *             An XML Processing Exception occurred
+	 * @throws UnsupportedOperationException
+	 *             An unsupported operation exception occurred
+	 * @throws I2B2InterfaceException
+	 *             An error occurred on the i2b2 server
+	 * @throws IOException
+	 *             An IO Exception occurred
 	 */
 	public void addChild(HttpClient client, ConceptType conceptType)
 			throws JAXBException, UnsupportedOperationException,
@@ -401,21 +502,28 @@ public class ONTCell {
 		checkForError(runRequest(client, sw.toString(), "/addChild"));
 
 	}
+
 	/**
 	 * Modify a child
 	 * 
-	 * @param client HTTP Client
-	 * @param inclSynonyms Include Synonyms
-	 * @param conceptType Concept Type
-	 * @throws JAXBException An XML Processing Exception occurred
-	 * @throws UnsupportedOperationException An unsupported operation exception occurred
-	 * @throws I2B2InterfaceException An error occurred on the i2b2 server
-	 * @throws IOException An IO Exception occurred
+	 * @param client
+	 *            HTTP Client
+	 * @param inclSynonyms
+	 *            Include Synonyms
+	 * @param conceptType
+	 *            Concept Type
+	 * @throws JAXBException
+	 *             An XML Processing Exception occurred
+	 * @throws UnsupportedOperationException
+	 *             An unsupported operation exception occurred
+	 * @throws I2B2InterfaceException
+	 *             An error occurred on the i2b2 server
+	 * @throws IOException
+	 *             An IO Exception occurred
 	 */
 	public void modifyChild(HttpClient client, boolean inclSynonyms,
 			ConceptType conceptType) throws JAXBException,
-			UnsupportedOperationException, I2B2InterfaceException,
-			IOException {
+			UnsupportedOperationException, I2B2InterfaceException, IOException {
 		RequestMessageType rmt = createMinimumBaseMessage();
 
 		ModifyChildType mct = ontOF.createModifyChildType();
@@ -431,19 +539,27 @@ public class ONTCell {
 		checkForError(runRequest(client, sw.toString(), "/modifyChild"));
 
 	}
-	
+
 	/**
 	 * Updates a CRC Concept
 	 * 
-	 * @param client HTTP Client
-	 * @param hidden Return hidden data
-	 * @param operationType Operation type
-	 * @param synonyms Return synonyms
+	 * @param client
+	 *            HTTP Client
+	 * @param hidden
+	 *            Return hidden data
+	 * @param operationType
+	 *            Operation type
+	 * @param synonyms
+	 *            Return synonyms
 	 * @return Result of update
-	 * @throws JAXBException An XML Processing Exception occurred
-	 * @throws UnsupportedOperationException An unsupported operation exception occurred
-	 * @throws I2B2InterfaceException An error occurred on the i2b2 server
-	 * @throws IOException An IO Exception occurred
+	 * @throws JAXBException
+	 *             An XML Processing Exception occurred
+	 * @throws UnsupportedOperationException
+	 *             An unsupported operation exception occurred
+	 * @throws I2B2InterfaceException
+	 *             An error occurred on the i2b2 server
+	 * @throws IOException
+	 *             An IO Exception occurred
 	 */
 	public OntologyProcessStatusType updateCRCConcept(HttpClient client,
 			boolean hidden, String operationType, boolean synonyms)
@@ -462,27 +578,40 @@ public class ONTCell {
 		StringWriter sw = new StringWriter();
 		ontMarshaller.marshal(ontOF.createRequest(rmt), sw);
 
-		return getType(ontOF.createOntologyProcessStatusType(), runRequest(client, sw.toString(),
-				"/updateCRCConcept"));
+		return getType(ontOF.createOntologyProcessStatusType(),
+				runRequest(client, sw.toString(), "/updateCRCConcept"));
 	}
 
 	/**
 	 * Gets ontology process status
 	 * 
-	 * @param client HTTP Client
-	 * @param max Maximum results to return
-	 * @param startDateStartTime start process start
-	 * @param startDateEndTime start process end
-	 * @param endDateStartTime end process start
-	 * @param endDateEndTime end process end
-	 * @param processId Process Id
-	 * @param processStatusCd Process Status
-	 * @param processTypeCd Process type
+	 * @param client
+	 *            HTTP Client
+	 * @param max
+	 *            Maximum results to return
+	 * @param startDateStartTime
+	 *            start process start
+	 * @param startDateEndTime
+	 *            start process end
+	 * @param endDateStartTime
+	 *            end process start
+	 * @param endDateEndTime
+	 *            end process end
+	 * @param processId
+	 *            Process Id
+	 * @param processStatusCd
+	 *            Process Status
+	 * @param processTypeCd
+	 *            Process type
 	 * @return Process status
-	 * @throws JAXBException An XML Processing Exception occurred
-	 * @throws UnsupportedOperationException An unsupported operation exception occurred
-	 * @throws I2B2InterfaceException An error occurred on the i2b2 server
-	 * @throws IOException An IO Exception occurred
+	 * @throws JAXBException
+	 *             An XML Processing Exception occurred
+	 * @throws UnsupportedOperationException
+	 *             An unsupported operation exception occurred
+	 * @throws I2B2InterfaceException
+	 *             An error occurred on the i2b2 server
+	 * @throws IOException
+	 *             An IO Exception occurred
 	 * @throws DatatypeConfigurationException
 	 */
 	public OntologyProcessStatusListType getOntologyProcessStatus(
@@ -491,8 +620,8 @@ public class ONTCell {
 			GregorianCalendar endDateStartTime,
 			GregorianCalendar endDateEndTime, String processId,
 			String processStatusCd, String processTypeCd) throws JAXBException,
-			UnsupportedOperationException, I2B2InterfaceException,
-			IOException, DatatypeConfigurationException {
+			UnsupportedOperationException, I2B2InterfaceException, IOException,
+			DatatypeConfigurationException {
 		RequestMessageType rmt = createMinimumBaseMessage();
 
 		GetOntProcessStatusType opst = ontOF.createGetOntProcessStatusType();
@@ -517,28 +646,36 @@ public class ONTCell {
 		opst.setProcessId(processId);
 		opst.setProcessStatusCd(processStatusCd);
 		opst.setProcessTypeCd(processTypeCd);
-		
-		rmt.getMessageBody().getAny().add(ontOF.createGetOntProcessStatus(opst));
+
+		rmt.getMessageBody().getAny()
+				.add(ontOF.createGetOntProcessStatus(opst));
 
 		// Mashall the XML to String and attach it to the post request
 		StringWriter sw = new StringWriter();
 		ontMarshaller.marshal(ontOF.createRequest(rmt), sw);
 
-		return getType(ontOF.createOntologyProcessStatusListType(), runRequest(client, sw.toString(),
-				"/getOntologyProcessStatus"));
+		return getType(ontOF.createOntologyProcessStatusListType(),
+				runRequest(client, sw.toString(), "/getOntologyProcessStatus"));
 	}
 
 	/**
 	 * Get dirty state
 	 * 
-	 * @param client HTTP Client
-	 * @param blob Return data stored as Blob or Clob
-	 * @param type Sets type of categories
+	 * @param client
+	 *            HTTP Client
+	 * @param blob
+	 *            Return data stored as Blob or Clob
+	 * @param type
+	 *            Sets type of categories
 	 * @return Dirty state
-	 * @throws JAXBException An XML Processing Exception occurred
-	 * @throws UnsupportedOperationException An unsupported operation exception occurred
-	 * @throws I2B2InterfaceException An error occurred on the i2b2 server
-	 * @throws IOException An IO Exception occurred
+	 * @throws JAXBException
+	 *             An XML Processing Exception occurred
+	 * @throws UnsupportedOperationException
+	 *             An unsupported operation exception occurred
+	 * @throws I2B2InterfaceException
+	 *             An error occurred on the i2b2 server
+	 * @throws IOException
+	 *             An IO Exception occurred
 	 */
 	@SuppressWarnings("unchecked")
 	public DirtyValueType getDirtyState(HttpClient client, boolean blob,
@@ -555,7 +692,7 @@ public class ONTCell {
 		// Mashall the XML to String and attach it to the post request
 		StringWriter sw = new StringWriter();
 		ontMarshaller.marshal(ontOF.createRequest(rmt), sw);
-		
+
 		ResponseMessageType responseMT = JAXB.unmarshal(
 				runRequest(client, sw.toString(), "/getDirtyState"),
 				ResponseMessageType.class);
@@ -573,18 +710,22 @@ public class ONTCell {
 	/**
 	 * Update concept total num
 	 * 
-	 * @param client HTTP Client
+	 * @param client
+	 *            HTTP Client
 	 * @param operationType
 	 * @return Result of update
-	 * @throws JAXBException An XML Processing Exception occurred
-	 * @throws UnsupportedOperationException An unsupported operation exception occurred
-	 * @throws I2B2InterfaceException An error occurred on the i2b2 server
-	 * @throws IOException An IO Exception occurred
+	 * @throws JAXBException
+	 *             An XML Processing Exception occurred
+	 * @throws UnsupportedOperationException
+	 *             An unsupported operation exception occurred
+	 * @throws I2B2InterfaceException
+	 *             An error occurred on the i2b2 server
+	 * @throws IOException
+	 *             An IO Exception occurred
 	 */
 	public OntologyProcessStatusType updateConceptTotalNum(HttpClient client,
 			String operationType) throws JAXBException,
-			UnsupportedOperationException, I2B2InterfaceException,
-			IOException {
+			UnsupportedOperationException, I2B2InterfaceException, IOException {
 		RequestMessageType rmt = createMinimumBaseMessage();
 
 		UpdateConceptTotalNumType uctnt = ontOF
@@ -598,73 +739,101 @@ public class ONTCell {
 		StringWriter sw = new StringWriter();
 		ontMarshaller.marshal(ontOF.createRequest(rmt), sw);
 
-		
-		return getType(ontOF.createOntologyProcessStatusType(), runRequest(client, sw.toString(),
-				"/updateConceptTotalNum"));
+		return getType(ontOF.createOntologyProcessStatusType(),
+				runRequest(client, sw.toString(), "/updateConceptTotalNum"));
 
 	}
 
 	/**
 	 * Get modifiers
 	 * 
-	 * @param client HTTP Client
-	 * @param blob Return data stored as Blob or Clob
-	 * @param category Category to search on
-	 * @param hidden Return hidden data
-	 * @param strategy Strategy used for matching
-	 * @param max Maximum results to return
-	 * @param self Self
-	 * @param synonyms Return synonyms
-	 * @param type Sets type of categories
+	 * @param client
+	 *            HTTP Client
+	 * @param blob
+	 *            Return data stored as Blob or Clob
+	 * @param category
+	 *            Category to search on
+	 * @param hidden
+	 *            Return hidden data
+	 * @param strategy
+	 *            Strategy used for matching
+	 * @param max
+	 *            Maximum results to return
+	 * @param self
+	 *            Self
+	 * @param synonyms
+	 *            Return synonyms
+	 * @param type
+	 *            Sets type of categories
 	 * @return Modifiers
-	 * @throws JAXBException An XML Processing Exception occurred
-	 * @throws UnsupportedOperationException An unsupported operation exception occurred
-	 * @throws I2B2InterfaceException An error occurred on the i2b2 server
-	 * @throws IOException An IO Exception occurred
+	 * @throws JAXBException
+	 *             An XML Processing Exception occurred
+	 * @throws UnsupportedOperationException
+	 *             An unsupported operation exception occurred
+	 * @throws I2B2InterfaceException
+	 *             An error occurred on the i2b2 server
+	 * @throws IOException
+	 *             An IO Exception occurred
 	 */
 	public ModifiersType getModifiers(HttpClient client, boolean blob,
-			String category, boolean hidden, String strategy, int max,
+			boolean hidden, String strategy, int max,
 			String self, boolean synonyms, String type) throws JAXBException,
-			UnsupportedOperationException, I2B2InterfaceException,
-			IOException {
+			UnsupportedOperationException, I2B2InterfaceException, IOException {
 		RequestMessageType rmt = createMinimumBaseMessage();
 
 		GetModifiersType gmt = ontOF.createGetModifiersType();
 		gmt.setBlob(blob);
 		gmt.setHiddens(hidden);
-		gmt.setMax(max);
+		if (max != -1) {
+			gmt.setMax(max);
+		}
 		gmt.setSelf(self);
 		gmt.setSynonyms(synonyms);
-		gmt.setType(type);
-
+		if(type != null) {
+			gmt.setType(type);
+		}
 		rmt.getMessageBody().getAny().add(ontOF.createGetModifiers(gmt));
 
 		// Mashall the XML to String and attach it to the post request
 		StringWriter sw = new StringWriter();
 		ontMarshaller.marshal(ontOF.createRequest(rmt), sw);
 
-		return getType(ontOF.createModifiersType(), runRequest(client, sw.toString(),
-				"/getModifiers"));
+		return getType(ontOF.createModifiersType(),
+				runRequest(client, sw.toString(), "/getModifiers"));
 	}
 
 	/**
 	 * Get modifier information
 	 * 
-	 * @param client HTTP Client
-	 * @param appliedPath Applied path
-	 * @param blob Return data stored as Blob or Clob
-	 * @param category Category to search on
-	 * @param hidden Return hidden data
-	 * @param strategy Strategy used for matching
-	 * @param max Maximum results to return
-	 * @param self Self
-	 * @param synonyms Return synonyms
-	 * @param type Sets type of categories
+	 * @param client
+	 *            HTTP Client
+	 * @param appliedPath
+	 *            Applied path
+	 * @param blob
+	 *            Return data stored as Blob or Clob
+	 * @param category
+	 *            Category to search on
+	 * @param hidden
+	 *            Return hidden data
+	 * @param strategy
+	 *            Strategy used for matching
+	 * @param max
+	 *            Maximum results to return
+	 * @param self
+	 *            Self
+	 * @param synonyms
+	 *            Return synonyms
+	 * @param type
+	 *            Sets type of categories
 	 * @return Modifier information
-	 * @throws JAXBException An XML Processing Exception occurred
-	 * @throws UnsupportedOperationException An unsupported operation exception occurred
-	 * @throws I2B2InterfaceException An error occurred on the i2b2 server
-	 * @throws IOException An IO Exception occurred
+	 * @throws JAXBException
+	 *             An XML Processing Exception occurred
+	 * @throws UnsupportedOperationException
+	 *             An unsupported operation exception occurred
+	 * @throws I2B2InterfaceException
+	 *             An error occurred on the i2b2 server
+	 * @throws IOException
+	 *             An IO Exception occurred
 	 */
 	public ModifiersType getModifierInfo(HttpClient client, String appliedPath,
 			boolean blob, String category, boolean hidden, String strategy,
@@ -689,37 +858,51 @@ public class ONTCell {
 		StringWriter sw = new StringWriter();
 		ontMarshaller.marshal(ontOF.createRequest(rmt), sw);
 
-		return getType(ontOF.createModifiersType(), runRequest(client, sw.toString(),
-				"/getModifierInfo"));
+		return getType(ontOF.createModifiersType(),
+				runRequest(client, sw.toString(), "/getModifierInfo"));
 
 	}
 
 	/**
 	 * Get modifier children
 	 * 
-	 * @param client HTTP Client
-	 * @param appliedConcept Applied concept
-	 * @param appliedPath Applied path
-	 * @param blob Return data stored as Blob or Clob
-	 * @param category Category to search on
-	 * @param hidden Return hidden data
-	 * @param strategy Strategy used for matching
-	 * @param max Maximum results to return
-	 * @param parent Parent Modifier
-	 * @param synonyms Return synonyms
-	 * @param type Sets type of categories
+	 * @param client
+	 *            HTTP Client
+	 * @param appliedConcept
+	 *            Applied concept
+	 * @param appliedPath
+	 *            Applied path
+	 * @param blob
+	 *            Return data stored as Blob or Clob
+	 * @param category
+	 *            Category to search on
+	 * @param hidden
+	 *            Return hidden data
+	 * @param strategy
+	 *            Strategy used for matching
+	 * @param max
+	 *            Maximum results to return
+	 * @param parent
+	 *            Parent Modifier
+	 * @param synonyms
+	 *            Return synonyms
+	 * @param type
+	 *            Sets type of categories
 	 * @return Modifier children
-	 * @throws JAXBException An XML Processing Exception occurred
-	 * @throws UnsupportedOperationException An unsupported operation exception occurred
-	 * @throws I2B2InterfaceException An error occurred on the i2b2 server
-	 * @throws IOException An IO Exception occurred
+	 * @throws JAXBException
+	 *             An XML Processing Exception occurred
+	 * @throws UnsupportedOperationException
+	 *             An unsupported operation exception occurred
+	 * @throws I2B2InterfaceException
+	 *             An error occurred on the i2b2 server
+	 * @throws IOException
+	 *             An IO Exception occurred
 	 */
 	public ModifiersType getModifierChildren(HttpClient client,
 			String appliedConcept, String appliedPath, boolean blob,
 			String category, boolean hidden, String strategy, int max,
 			String parent, boolean synonyms, String type) throws JAXBException,
-			UnsupportedOperationException, I2B2InterfaceException,
-			IOException {
+			UnsupportedOperationException, I2B2InterfaceException, IOException {
 		RequestMessageType rmt = createMinimumBaseMessage();
 
 		GetModifierChildrenType gmct = ontOF.createGetModifierChildrenType();
@@ -738,28 +921,42 @@ public class ONTCell {
 		// Mashall the XML to String and attach it to the post request
 		StringWriter sw = new StringWriter();
 		ontMarshaller.marshal(ontOF.createRequest(rmt), sw);
-		return getType(ontOF.createModifiersType(), runRequest(client, sw.toString(),
-				"/getModifierChidlren"));
+		return getType(ontOF.createModifiersType(),
+				runRequest(client, sw.toString(), "/getModifierChidlren"));
 	}
 
 	/**
 	 * Get modifier name information
 	 * 
-	 * @param client HTTP Client
-	 * @param blob Return data stored as Blob or Clob
-	 * @param category Category to search on
-	 * @param hidden Return hidden data
-	 * @param strategy Strategy used for matching
-	 * @param matchStr String to match on
-	 * @param max Maximum results to return
-	 * @param self Self
-	 * @param synonyms Return synonyms
-	 * @param type Sets type of categories
+	 * @param client
+	 *            HTTP Client
+	 * @param blob
+	 *            Return data stored as Blob or Clob
+	 * @param category
+	 *            Category to search on
+	 * @param hidden
+	 *            Return hidden data
+	 * @param strategy
+	 *            Strategy used for matching
+	 * @param matchStr
+	 *            String to match on
+	 * @param max
+	 *            Maximum results to return
+	 * @param self
+	 *            Self
+	 * @param synonyms
+	 *            Return synonyms
+	 * @param type
+	 *            Sets type of categories
 	 * @return Modifier name information
-	 * @throws JAXBException An XML Processing Exception occurred
-	 * @throws UnsupportedOperationException An unsupported operation exception occurred
-	 * @throws I2B2InterfaceException An error occurred on the i2b2 server
-	 * @throws IOException An IO Exception occurred
+	 * @throws JAXBException
+	 *             An XML Processing Exception occurred
+	 * @throws UnsupportedOperationException
+	 *             An unsupported operation exception occurred
+	 * @throws I2B2InterfaceException
+	 *             An error occurred on the i2b2 server
+	 * @throws IOException
+	 *             An IO Exception occurred
 	 */
 	public ModifiersType getModifierNameInfo(HttpClient client, boolean blob,
 			String category, boolean hidden, String strategy, String matchStr,
@@ -786,27 +983,42 @@ public class ONTCell {
 		// Mashall the XML to String and attach it to the post request
 		StringWriter sw = new StringWriter();
 		ontMarshaller.marshal(ontOF.createRequest(rmt), sw);
-		return getType(ontOF.createModifiersType(), runRequest(client, sw.toString(),
-				"/getModifierNameInfo"));
+		return getType(ontOF.createModifiersType(),
+				runRequest(client, sw.toString(), "/getModifierNameInfo"));
 	}
 
 	/**
 	 * Get modifier code information
-	 * @param client HTTP Client
-	 * @param blob Return data stored as Blob or Clob
-	 * @param category Category to search on
-	 * @param hidden Return hidden data
-	 * @param strategy Strategy used for matching
-	 * @param matchStr String to match on
-	 * @param max Maximum results to return
-	 * @param self Self
-	 * @param synonyms Return synonyms
-	 * @param type Sets type of categories
+	 * 
+	 * @param client
+	 *            HTTP Client
+	 * @param blob
+	 *            Return data stored as Blob or Clob
+	 * @param category
+	 *            Category to search on
+	 * @param hidden
+	 *            Return hidden data
+	 * @param strategy
+	 *            Strategy used for matching
+	 * @param matchStr
+	 *            String to match on
+	 * @param max
+	 *            Maximum results to return
+	 * @param self
+	 *            Self
+	 * @param synonyms
+	 *            Return synonyms
+	 * @param type
+	 *            Sets type of categories
 	 * @return Modifier code information
-	 * @throws JAXBException An XML Processing Exception occurred
-	 * @throws UnsupportedOperationException An unsupported operation exception occurred
-	 * @throws I2B2InterfaceException An error occurred on the i2b2 server
-	 * @throws IOException An IO Exception occurred
+	 * @throws JAXBException
+	 *             An XML Processing Exception occurred
+	 * @throws UnsupportedOperationException
+	 *             An unsupported operation exception occurred
+	 * @throws I2B2InterfaceException
+	 *             An error occurred on the i2b2 server
+	 * @throws IOException
+	 *             An IO Exception occurred
 	 */
 	public ModifiersType getModifierCodeInfo(HttpClient client, boolean blob,
 			String category, boolean hidden, String strategy, String matchStr,
@@ -835,19 +1047,25 @@ public class ONTCell {
 		StringWriter sw = new StringWriter();
 		ontMarshaller.marshal(ontOF.createRequest(rmt), sw);
 
-		return getType(ontOF.createModifiersType(), runRequest(client, sw.toString(),
-				"/getModifierCodeInfo"));
+		return getType(ontOF.createModifiersType(),
+				runRequest(client, sw.toString(), "/getModifierCodeInfo"));
 	}
 
 	/**
 	 * Add a modifier
 	 * 
-	 * @param client HTTP Client
-	 * @param modifierType Modifier type
-	 * @throws JAXBException An XML Processing Exception occurred
-	 * @throws UnsupportedOperationException An unsupported operation exception occurred
-	 * @throws I2B2InterfaceException An error occurred on the i2b2 server
-	 * @throws IOException An IO Exception occurred
+	 * @param client
+	 *            HTTP Client
+	 * @param modifierType
+	 *            Modifier type
+	 * @throws JAXBException
+	 *             An XML Processing Exception occurred
+	 * @throws UnsupportedOperationException
+	 *             An unsupported operation exception occurred
+	 * @throws I2B2InterfaceException
+	 *             An error occurred on the i2b2 server
+	 * @throws IOException
+	 *             An IO Exception occurred
 	 */
 	public void addModifier(HttpClient client, ModifierType modifierType)
 			throws JAXBException, UnsupportedOperationException,
@@ -868,33 +1086,48 @@ public class ONTCell {
 	// -------------------------------------------------------------------------
 	// Utility Methods
 	// -------------------------------------------------------------------------
+
+	static String convertStreamToString(java.io.InputStream is) {
+	    java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+	    return s.hasNext() ? s.next() : "";
+	}
 	
 	@SuppressWarnings("unchecked")
-	private <T> T getType(T returnType, InputStream inputStream) throws I2B2InterfaceException {
+	private <T> T getType(T returnType, InputStream inputStream)
+			throws I2B2InterfaceException {
+//		String xml = convertStreamToString(inputStream);
+//		System.out.println(xml);
+//		JAXB.unmarshal(xml, type)
+//		ResponseMessageType rmt = JAXB.unmarshal(xml,
+//				ResponseMessageType.class);
 		ResponseMessageType rmt = JAXB.unmarshal(inputStream,
 				ResponseMessageType.class);
-		String status = rmt.getResponseHeader().getResultStatus().getStatus().getType();
+		String status = rmt.getResponseHeader().getResultStatus().getStatus()
+				.getType();
 		if (!(status.equals("SUCCESS") || status.equals("DONE"))) {
 			throw new I2B2InterfaceException(rmt.getResponseHeader()
 					.getResultStatus().getStatus().getValue());
 		}
 
-		return ((JAXBElement<T>) rmt.getMessageBody().getAny()
-				.get(0)).getValue();
+		return ((JAXBElement<T>) rmt.getMessageBody().getAny().get(0))
+				.getValue();
 	}
 
 	/**
 	 * Check for any errors and throw an exception if they occur
 	 * 
-	 * @param inputStream XML stream for input
-	 * @throws I2B2InterfaceException An error occurred on the i2b2 server
+	 * @param inputStream
+	 *            XML stream for input
+	 * @throws I2B2InterfaceException
+	 *             An error occurred on the i2b2 server
 	 */
 	private void checkForError(InputStream inputStream)
 			throws I2B2InterfaceException {
 		ResponseMessageType rmt = JAXB.unmarshal(inputStream,
 				ResponseMessageType.class);
 
-		String status = rmt.getResponseHeader().getResultStatus().getStatus().getType();
+		String status = rmt.getResponseHeader().getResultStatus().getStatus()
+				.getType();
 		if (!(status.equals("SUCCESS") || status.equals("DONE"))) {
 			throw new I2B2InterfaceException(rmt.getResponseHeader()
 					.getResultStatus().getStatus().getValue());
@@ -904,17 +1137,25 @@ public class ONTCell {
 	/**
 	 * Posts the xml to the i2b2 server
 	 * 
-	 * @param client HTTP Client
-	 * @param entity Entity to attach to post
-	 * @param urlAppend URL to append to base URL
+	 * @param client
+	 *            HTTP Client
+	 * @param entity
+	 *            Entity to attach to post
+	 * @param urlAppend
+	 *            URL to append to base URL
 	 * @return InputStream from content
-	 * @throws UnsupportedOperationException An unsupported operation exception occurred
-	 * @throws IOException An IO Exception occurred
+	 * @throws UnsupportedOperationException
+	 *             An unsupported operation exception occurred
+	 * @throws IOException
+	 *             An IO Exception occurred
 	 */
 	private InputStream runRequest(HttpClient client, String entity,
 			String urlAppend) throws UnsupportedOperationException, IOException {
-		// System.out.println("\n\n" + entity + "\n\n");
+//		 System.out.println("\n\n" + entity + "\n\n");
 		// Create Post
+		if((urlAppend.startsWith("/")) && (connectionURL.endsWith("/"))) {
+			urlAppend = urlAppend.substring(1);
+		}
 		HttpPost post = new HttpPost(connectionURL + urlAppend);
 		// Set Header
 		post.setHeader("Content-Type", "text/xml");
@@ -950,12 +1191,22 @@ public class ONTCell {
 
 		// Create Security Type
 		SecurityType st = ontOF.createSecurityType();
-		st.setDomain(parameters.get("domain"));
-		st.setUsername(parameters.get("username"));
-		st.setPassword(parameters.get("password"));
+		st.setDomain(this.domain);
+		st.setUsername(this.userName);
+		
+		PasswordType pt = ontOF.createPasswordType();
+		
+		if(this.password != null) {
+			pt.setValue(this.password);
+		} else {
+			pt.setIsToken(true);
+			pt.setValue(this.token);
+			pt.setTokenMsTimeout((int) this.timeout);
+		}
+		st.setPassword(pt);
 		mht.setSecurity(st);
 
-		mht.setProjectId(parameters.get("projectID"));
+		mht.setProjectId(this.projectId);
 		rmt.setMessageHeader(mht);
 
 		// Create Request Header Type
@@ -968,6 +1219,101 @@ public class ONTCell {
 		rmt.setMessageBody(bt);
 
 		return rmt;
+	}
+
+	/**
+	 * Returns the domain
+	 * 
+	 * @return Domain
+	 */
+	public String getDomain() {
+		return domain;
+	}
+
+	/**
+	 * Sets the domain
+	 * 
+	 * @param domain
+	 *            Domain
+	 */
+	public void setDomain(String domain) {
+		this.domain = domain;
+	}
+
+	/**
+	 * Returns the user name
+	 * 
+	 * @return User name
+	 */
+	public String getUserName() {
+		return userName;
+	}
+
+	/**
+	 * Sets the user name
+	 * 
+	 * @param userName
+	 *            User name
+	 */
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	/**
+	 * Returns the password
+	 * 
+	 * @return Password
+	 */
+	public String getPassword() {
+		return password;
+	}
+
+	/**
+	 * Sets the password
+	 * 
+	 * @param password
+	 *            Password
+	 */
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	/**
+	 * Returns the project id
+	 * 
+	 * @return Project Id
+	 */
+	public String getProjectId() {
+		return projectId;
+	}
+
+	/**
+	 * Sets the project Id
+	 * 
+	 * @param projectId
+	 *            Project Id
+	 */
+	public void setProjectId(String projectId) {
+		this.projectId = projectId;
+	}
+
+	/**
+	 * Returns the connection URL
+	 * 
+	 * @return Connection URL
+	 */
+	public String getConnectionURL() {
+		return connectionURL;
+	}
+
+	/**
+	 * Sets the conneciton URL
+	 * 
+	 * @param connectionURL
+	 *            Connection URL
+	 */
+	public void setConnectionURL(String connectionURL) {
+		this.connectionURL = connectionURL;
 	}
 
 }

@@ -17,9 +17,7 @@
 package edu.harvard.hms.dbmi.i2b2.api.samples;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
@@ -191,14 +189,6 @@ public class SimpleQuery {
 	
 	private void setup(String userName, String domain, String password,
 			String crcCellURL, String project) throws JAXBException {
-		Map<String, String> parameters = new HashMap<String, String>();
-		parameters.put("username", userName);
-		parameters.put("domain", domain);
-		parameters.put("password", password);
-		parameters.put("CRCConnectionURL", crcCellURL);
-		parameters.put("projectID", project);
-
-		crcCell.setup(parameters);
-
+		crcCell.setup(crcCellURL, domain, userName, password, project);
 	}
 }

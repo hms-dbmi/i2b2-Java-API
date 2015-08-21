@@ -16,6 +16,7 @@
  */
 
 package edu.harvard.hms.dbmi.i2b2.api.exception;
+
 /**
  * An i2b2 Interface Exception occurs of some type
  * 
@@ -28,5 +29,9 @@ public class I2B2InterfaceException extends Exception {
 
 	public I2B2InterfaceException(String message) {
 		super(message);
+	}
+
+	public I2B2InterfaceException(String message, Exception e) {
+		super(message, e);
 	}
 }

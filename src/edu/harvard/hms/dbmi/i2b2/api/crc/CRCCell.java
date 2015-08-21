@@ -22,7 +22,6 @@ import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBContext;
@@ -38,6 +37,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 
+import edu.harvard.hms.dbmi.i2b2.api.Cell;
 import edu.harvard.hms.dbmi.i2b2.api.crc.xml.pdo.ApplicationType;
 import edu.harvard.hms.dbmi.i2b2.api.crc.xml.pdo.BodyType;
 import edu.harvard.hms.dbmi.i2b2.api.crc.xml.pdo.ConceptPrimaryKeyType;
@@ -57,6 +57,7 @@ import edu.harvard.hms.dbmi.i2b2.api.crc.xml.pdo.ObserverPrimaryKeyType;
 import edu.harvard.hms.dbmi.i2b2.api.crc.xml.pdo.OutputOptionListType;
 import edu.harvard.hms.dbmi.i2b2.api.crc.xml.pdo.OutputOptionSelectType;
 import edu.harvard.hms.dbmi.i2b2.api.crc.xml.pdo.OutputOptionType;
+import edu.harvard.hms.dbmi.i2b2.api.crc.xml.pdo.PasswordType;
 import edu.harvard.hms.dbmi.i2b2.api.crc.xml.pdo.PatientDataResponseType;
 import edu.harvard.hms.dbmi.i2b2.api.crc.xml.pdo.PatientListType;
 import edu.harvard.hms.dbmi.i2b2.api.crc.xml.pdo.PatientPrimaryKeyType;
@@ -95,7 +96,7 @@ import edu.harvard.hms.dbmi.i2b2.api.exception.I2B2InterfaceException;
  * @author Jeremy R. Easton-Marks
  *
  */
-public class CRCCell {
+public class CRCCell implements Cell {
 	// PDO
 	private static ObjectFactory pdoOF;
 	private static JAXBContext pdoJC;
@@ -105,29 +106,57 @@ public class CRCCell {
 	private static edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.ObjectFactory psmOF;
 	private static JAXBContext psmJC;
 	private static Marshaller psmMarshaller;
+
 	// Loader
 	private static edu.harvard.hms.dbmi.i2b2.api.crc.xml.loader.ObjectFactory loaderOF;
 	private static JAXBContext loaderJC;
 	private static Marshaller loaderMarshaller;
 
 	// Connection and Configuration Parameters
+	private String domain;
+	private String userName;
+	private String password;
+	private String projectId;
 	private String connectionURL;
-	private Map<String, String> parameters;
+	
+	private String token;
+	private long timeout;
 
 	/**
 	 * Sets up all the needed parameters to communicate with the Data Repository
 	 * Cell
 	 * 
-	 * @param parameters
-	 *            Setup parameters
+	 * @param connectionURL
+	 *            URL of the cell
+	 * @param domain
+	 *            Domain
+	 * @param userName
+	 *            User name
+	 * @param password
+	 *            Password
+	 * @param projectId
+	 *            Project Id
 	 * @throws JAXBException
 	 *             An Exception Occurred
 	 */
-	public void setup(Map<String, String> parameters) throws JAXBException {
+	public void setup(String connectionURL, String domain, String userName,
+			String password, String projectId) throws JAXBException {
 		// Setup Parameters
-		connectionURL = parameters.get("CRCConnectionURL");
-		this.parameters = parameters;
+		this.connectionURL = connectionURL;
+		this.domain = domain;
+		this.userName = userName;
+		this.password = password;
+		this.projectId = projectId;
 
+		setup();
+	}
+
+	/**
+	 * Sets up the system without any parameters of the Data Repository Cell
+	 * 
+	 * @throws JAXBException
+	 */
+	public void setup() throws JAXBException {
 		// Setup PDO
 		pdoOF = new ObjectFactory();
 		pdoJC = JAXBContext
@@ -148,6 +177,17 @@ public class CRCCell {
 				.newInstance("edu.harvard.hms.dbmi.i2b2.api.crc.xml.loader");
 		loaderMarshaller = loaderJC.createMarshaller();
 		loaderMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+	}
+	
+	public void setup(String connectionURL, String domain, String userName, String token, long timeout, String project) throws JAXBException {
+		this.connectionURL = connectionURL;
+		this.domain = domain;
+		this.userName = userName;
+		this.token = token;
+		this.timeout = timeout;
+		this.projectId = project;
+		
+		setup();
 	}
 
 	// -------------------------------------------------------------------------
@@ -299,14 +339,9 @@ public class CRCCell {
 	 *             An Exception Occurred
 	 */
 	public MasterInstanceResultResponseType runQueryInstanceFromQueryDefinition(
-			HttpClient client,
-			String queryId,
-			String queryType,
-			String queryName,
-			String queryDescription,
-			String queryTiming,
-			int querySpecifityScale,
-			ResultOutputOptionListType resultOptions,
+			HttpClient client, String queryId, String queryType,
+			String queryName, String queryDescription, String queryTiming,
+			int querySpecifityScale, ResultOutputOptionListType resultOptions,
 			edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PanelType... panels)
 			throws JAXBException, ClientProtocolException,
 			I2B2InterfaceException, IOException {
@@ -676,8 +711,7 @@ public class CRCCell {
 			String modifierCd, String instanceNum, boolean onlyKeys,
 			boolean blob, boolean techdata, OutputOptionSelectType select)
 			throws JAXBException, ClientProtocolException,
-			I2B2InterfaceException, IOException,
-			DatatypeConfigurationException {
+			I2B2InterfaceException, IOException, DatatypeConfigurationException {
 		RequestMessageType rmt = createMinimumPDOBaseMessage(PdoRequestTypeType.GET_OBSERVATIONFACT_BY_PRIMARY_KEY);
 		GetObservationFactByPrimaryKeyRequestType irct = pdoOF
 				.createGetObservationFactByPrimaryKeyRequestType();
@@ -975,8 +1009,14 @@ public class CRCCell {
 
 	private InputStream runRequest(HttpClient client, String entity,
 			String urlAppend) throws ClientProtocolException, IOException {
-//		System.out.println("\n\n" + entity + "\n\n");
+//		 System.out.println("\n\n" + entity + "\n\n");
 		// Create Post
+		
+		if((urlAppend.startsWith("/")) && (connectionURL.endsWith("/"))) {
+			urlAppend = urlAppend.substring(1);
+		}
+		
+		
 		HttpPost post = new HttpPost(connectionURL + urlAppend);
 		// Set Header
 		post.setHeader("Content-Type", "text/xml");
@@ -1008,12 +1048,23 @@ public class CRCCell {
 
 		// Create Security Type
 		SecurityType st = pdoOF.createSecurityType();
-		st.setDomain(parameters.get("domain"));
-		st.setUsername(parameters.get("username"));
-		st.setPassword(parameters.get("password"));
+		st.setDomain(this.domain);
+		st.setUsername(this.userName);
+
+		PasswordType pt = pdoOF.createPasswordType();
+		
+		if(this.password != null) {
+			pt.setValue(this.password);
+		} else {
+			pt.setIsToken(true);
+			pt.setValue(this.token);
+			pt.setTokenMsTimeout((int) this.timeout);
+		}
+		st.setPassword(pt);
+
 		mht.setSecurity(st);
 
-		mht.setProjectId(parameters.get("projectID"));
+		mht.setProjectId(this.projectId);
 		rmt.setMessageHeader(mht);
 
 		// Create Request Header Type
@@ -1062,12 +1113,24 @@ public class CRCCell {
 		// Create Security Type
 		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.SecurityType st = psmOF
 				.createSecurityType();
-		st.setDomain(parameters.get("domain"));
-		st.setUsername(parameters.get("username"));
-		st.setPassword(parameters.get("password"));
+		st.setDomain(this.domain);
+		st.setUsername(this.userName);
+		
+		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PasswordType pt = psmOF.createPasswordType();
+		
+		if(this.password != null) {
+			pt.setValue(this.password);
+		} else {
+			pt.setIsToken(true);
+			pt.setValue(this.token);
+			pt.setTokenMsTimeout((int) this.timeout);
+		}
+		st.setPassword(pt);
+		
+		
 		mht.setSecurity(st);
 
-		mht.setProjectId(parameters.get("projectID"));
+		mht.setProjectId(this.projectId);
 		rmt.setMessageHeader(mht);
 
 		// Create Request Header Type

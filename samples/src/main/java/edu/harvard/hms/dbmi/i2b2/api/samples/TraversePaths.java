@@ -17,8 +17,6 @@
 package edu.harvard.hms.dbmi.i2b2.api.samples;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
@@ -159,15 +157,7 @@ public class TraversePaths {
 	 */
 	private void setup(String userName, String domain, String password,
 			String ontologyCellURL, String project) throws JAXBException {
-		Map<String, String> parameters = new HashMap<String, String>();
-		parameters.put("username", userName);
-		parameters.put("domain", domain);
-		parameters.put("password", password);
-		parameters.put("ONTConnectionURL", ontologyCellURL);
-		parameters.put("projectID", project);
-
-		ontCell.setup(parameters);
-
+		ontCell.setup(ontologyCellURL, domain, userName, password, project);
 	}
 
 	/**

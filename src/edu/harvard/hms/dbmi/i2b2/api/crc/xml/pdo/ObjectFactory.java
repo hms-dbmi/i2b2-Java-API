@@ -89,6 +89,14 @@ public class ObjectFactory {
     public ObservationType createObservationType() {
         return new ObservationType();
     }
+    
+    /**
+     * Create an instance of {@link PasswordType }
+     * 
+     */
+    public PasswordType createPasswordType() {
+        return new PasswordType();
+    }
 
     /**
      * Create an instance of {@link EidType }

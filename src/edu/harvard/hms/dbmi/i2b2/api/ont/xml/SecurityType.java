@@ -55,7 +55,7 @@ public class SecurityType {
 
     protected String domain;
     protected String username;
-    protected String password;
+    protected PasswordType password;
 
     /**
      * Gets the value of the domain property.
@@ -113,7 +113,7 @@ public class SecurityType {
      *     {@link String }
      *     
      */
-    public String getPassword() {
+    public PasswordType getPassword() {
         return password;
     }
 
@@ -125,7 +125,7 @@ public class SecurityType {
      *     {@link String }
      *     
      */
-    public void setPassword(String value) {
+    public void setPassword(PasswordType value) {
         this.password = value;
     }
 

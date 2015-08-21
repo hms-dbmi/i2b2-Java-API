@@ -22,7 +22,6 @@ import javax.xml.bind.annotation.XmlElementDecl;
 import javax.xml.bind.annotation.XmlRegistry;
 import javax.xml.namespace.QName;
 
-
 /**
  * This object contains factory methods for each 
  * Java content interface and Java element interface 
@@ -84,6 +83,14 @@ public class ObjectFactory {
      */
     public ItemType.ConstrainByModifier createItemTypeConstrainByModifier() {
         return new ItemType.ConstrainByModifier();
+    }
+    
+    /**
+     * Create an instance of {@link PasswordType }
+     * 
+     */
+    public PasswordType createPasswordType() {
+        return new PasswordType();
     }
 
     /**
