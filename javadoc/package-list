@@ -1,3 +1,4 @@
+edu.harvard.hms.dbmi.i2b2.api
 edu.harvard.hms.dbmi.i2b2.api.crc
 edu.harvard.hms.dbmi.i2b2.api.crc.xml.loader
 edu.harvard.hms.dbmi.i2b2.api.crc.xml.pdo
@@ -7,3 +8,4 @@ edu.harvard.hms.dbmi.i2b2.api.ont
 edu.harvard.hms.dbmi.i2b2.api.ont.xml
 edu.harvard.hms.dbmi.i2b2.api.pm
 edu.harvard.hms.dbmi.i2b2.api.pm.xml
+edu.harvard.hms.dbmi.i2b2.api.samples
