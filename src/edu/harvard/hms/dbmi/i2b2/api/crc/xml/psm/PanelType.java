@@ -83,8 +83,8 @@ public class PanelType {
     protected ConstrainDateType panelDateFrom;
     @XmlElement(name = "panel_date_to", required = true)
     protected ConstrainDateType panelDateTo;
-    @XmlElement(name = "panel_accuracy_scale")
-    protected int panelAccuracyScale;
+    @XmlElement(name = "panel_accuracy_scale", required = false)
+    protected Integer panelAccuracyScale;
     @XmlElement(defaultValue = "0")
     protected int invert;
     @XmlElement(name = "total_item_occurrences", required = true, defaultValue = "1")
@@ -186,7 +186,7 @@ public class PanelType {
      * Gets the value of the panelAccuracyScale property.
      * 
      */
-    public int getPanelAccuracyScale() {
+    public Integer getPanelAccuracyScale() {
         return panelAccuracyScale;
     }
 
@@ -194,7 +194,7 @@ public class PanelType {
      * Sets the value of the panelAccuracyScale property.
      * 
      */
-    public void setPanelAccuracyScale(int value) {
+    public void setPanelAccuracyScale(Integer value) {
         this.panelAccuracyScale = value;
     }
 

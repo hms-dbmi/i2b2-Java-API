@@ -184,8 +184,8 @@ public class ItemType {
     protected String itemShape;
     @XmlElement(name = "item_row_number", required = true)
     protected String itemRowNumber;
-    @XmlElement(name = "item_is_synonym")
-    protected boolean itemIsSynonym;
+    @XmlElement(name = "item_is_synonym", required = false)
+    protected Boolean itemIsSynonym;
     @XmlElement(required = true)
     protected MetadataxmlValueType metadataxml;
 
@@ -627,7 +627,7 @@ public class ItemType {
      * Gets the value of the itemIsSynonym property.
      * 
      */
-    public boolean isItemIsSynonym() {
+    public Boolean isItemIsSynonym() {
         return itemIsSynonym;
     }
 
@@ -635,7 +635,7 @@ public class ItemType {
      * Sets the value of the itemIsSynonym property.
      * 
      */
-    public void setItemIsSynonym(boolean value) {
+    public void setItemIsSynonym(Boolean value) {
         this.itemIsSynonym = value;
     }
 

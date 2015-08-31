@@ -118,27 +118,10 @@ public class CRCCell implements Cell {
 	private String password;
 	private String projectId;
 	private String connectionURL;
-	
+
 	private String token;
 	private long timeout;
 
-	/**
-	 * Sets up all the needed parameters to communicate with the Data Repository
-	 * Cell
-	 * 
-	 * @param connectionURL
-	 *            URL of the cell
-	 * @param domain
-	 *            Domain
-	 * @param userName
-	 *            User name
-	 * @param password
-	 *            Password
-	 * @param projectId
-	 *            Project Id
-	 * @throws JAXBException
-	 *             An Exception Occurred
-	 */
 	public void setup(String connectionURL, String domain, String userName,
 			String password, String projectId) throws JAXBException {
 		// Setup Parameters
@@ -179,14 +162,15 @@ public class CRCCell implements Cell {
 		loaderMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 	}
 	
-	public void setup(String connectionURL, String domain, String userName, String token, long timeout, String project) throws JAXBException {
+	public void setup(String connectionURL, String domain, String userName,
+			String token, long timeout, String project) throws JAXBException {
 		this.connectionURL = connectionURL;
 		this.domain = domain;
 		this.userName = userName;
 		this.token = token;
 		this.timeout = timeout;
 		this.projectId = project;
-		
+
 		setup();
 	}
 
@@ -1009,14 +993,13 @@ public class CRCCell implements Cell {
 
 	private InputStream runRequest(HttpClient client, String entity,
 			String urlAppend) throws ClientProtocolException, IOException {
-//		 System.out.println("\n\n" + entity + "\n\n");
+		// System.out.println("\n\n" + entity + "\n\n");
 		// Create Post
-		
-		if((urlAppend.startsWith("/")) && (connectionURL.endsWith("/"))) {
+
+		if ((urlAppend.startsWith("/")) && (connectionURL.endsWith("/"))) {
 			urlAppend = urlAppend.substring(1);
 		}
-		
-		
+
 		HttpPost post = new HttpPost(connectionURL + urlAppend);
 		// Set Header
 		post.setHeader("Content-Type", "text/xml");
@@ -1052,8 +1035,8 @@ public class CRCCell implements Cell {
 		st.setUsername(this.userName);
 
 		PasswordType pt = pdoOF.createPasswordType();
-		
-		if(this.password != null) {
+
+		if (this.password != null) {
 			pt.setValue(this.password);
 		} else {
 			pt.setIsToken(true);
@@ -1115,10 +1098,11 @@ public class CRCCell implements Cell {
 				.createSecurityType();
 		st.setDomain(this.domain);
 		st.setUsername(this.userName);
-		
-		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PasswordType pt = psmOF.createPasswordType();
-		
-		if(this.password != null) {
+
+		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PasswordType pt = psmOF
+				.createPasswordType();
+
+		if (this.password != null) {
 			pt.setValue(this.password);
 		} else {
 			pt.setIsToken(true);
@@ -1126,8 +1110,7 @@ public class CRCCell implements Cell {
 			pt.setTokenMsTimeout((int) this.timeout);
 		}
 		st.setPassword(pt);
-		
-		
+
 		mht.setSecurity(st);
 
 		mht.setProjectId(this.projectId);
@@ -1137,6 +1120,7 @@ public class CRCCell implements Cell {
 		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestHeaderType rht = psmOF
 				.createRequestHeaderType();
 		rht.setResultWaittimeMs(180000);
+
 		rmt.setRequestHeader(rht);
 
 		// Create a Body Type
@@ -1146,6 +1130,14 @@ public class CRCCell implements Cell {
 		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PsmQryHeaderType pqht = psmOF
 				.createPsmQryHeaderType();
 		pqht.setRequestType(requestPSMType);
+
+		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.UserType ut = psmOF
+				.createUserType();
+		// <user group="Demo" login="Demo">Demo</user>
+		ut.setGroup("Demo");
+		ut.setLogin("Demo");
+		ut.setValue("Demo");
+		pqht.setUser(ut);
 
 		bt.getAny().add(psmOF.createPsmheader(pqht));
 

@@ -19,29 +19,51 @@ import edu.harvard.hms.dbmi.i2b2.api.pm.xml.CellDataType;
 import edu.harvard.hms.dbmi.i2b2.api.pm.xml.ConfigureType;
 import edu.harvard.hms.dbmi.i2b2.api.pm.xml.ProjectType;
 
+/**
+ * The i2b2 Factory provides a connection to an i2b2 instance. It manages all
+ * the projects and individual cell connections.
+ * 
+ * @author Jeremy R. Easton-Marks
+ *
+ */
 public class I2B2Factory {
 
 	private String connectionURL;
 	private String domain;
 	private String userName;
-	private String password;
 	private Map<String, String> projects;
 	private boolean setup;
 	private String token;
 	private long tokenTimeOut;
 	private List<CellDataType> cellData;
 
+	/**
+	 * Creates a new instance i2b2 Factory
+	 */
 	public I2B2Factory() {
 		this.tokenTimeOut = 0;
 		this.setup = false;
 		this.projects = new HashMap<String, String>();
 	}
 
+	/**
+	 * Sets up the i2b2 factory
+	 */
 	public void setup() {
 		tokenTimeOut = 0;
 		this.setup = true;
 	}
 
+	/**
+	 * Login into a given i2b2 connection by passing the PM cells information
+	 * 
+	 * @param connectionURL PM Connection URL
+	 * @param domain Domain for the user
+	 * @param userName User name
+	 * @param password Passowrd
+	 * @return Returns the i2b2 token
+	 * @throws I2B2InterfaceException An exception occurred
+	 */
 	public String login(String connectionURL, String domain, String userName,
 			String password) throws I2B2InterfaceException {
 		String token = null;
@@ -50,7 +72,6 @@ public class I2B2Factory {
 			this.connectionURL = connectionURL;
 			this.domain = domain;
 			this.userName = userName;
-			this.password = password;
 			pmCell.setup(connectionURL, domain, userName, password);
 
 			HttpClient httpClient = HttpClients.createDefault();
@@ -76,19 +97,29 @@ public class I2B2Factory {
 		return token;
 	}
 
+	/**
+	 * Return a specific cell for a given project
+	 * 
+	 * @param cellName name of the cell
+	 * @param project Project connecting to
+	 * @return i2b2 Cell connector
+	 * @throws I2B2InterfaceException An error occurred
+	 */
 	public Cell getCell(String cellName, String project)
 			throws I2B2InterfaceException {
-		if(!this.setup) {
+		if (!this.setup) {
 			throw new I2B2InterfaceException("Factory has not been setup");
 		}
-		
+
 		Cell cell = null;
 		String projectPath = this.projects.get(project);
-
+		if(projectPath == null) {
+			throw new I2B2InterfaceException("Unable to find project: " + project);
+		}
 		for (CellDataType cdt : cellData) {
 			if (cdt.getId().equalsIgnoreCase(cellName)) {
 				String cellURL = null;
-				if(cdt.getProjectPath().equals("/")) {
+				if (cdt.getProjectPath().equals("/")) {
 					cellURL = cdt.getUrl();
 					if (cellName.equalsIgnoreCase("PM")) {
 						cell = new PMCell();
@@ -100,7 +131,7 @@ public class I2B2Factory {
 						throw new I2B2InterfaceException(cellName
 								+ " is not a supported cell type");
 					}
-				} else if(cdt.getProjectPath().equals(projectPath)) {
+				} else if (cdt.getProjectPath().equals(projectPath)) {
 					cellURL = cdt.getUrl();
 					if (cellName.equalsIgnoreCase("PM")) {
 						cell = new PMCell();
@@ -132,46 +163,65 @@ public class I2B2Factory {
 	// Setters and Getters
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Returns the connection URL for the PM cell
+	 * 
+	 * @return PM connection URL
+	 */
 	public String getConnectionURL() {
 		return connectionURL;
 	}
 
+	/**
+	 * Sets the connection URL for the PM cell
+	 * 
+	 * @param connectionURL PM connection URL
+	 */
 	public void setConnectionURL(String connectionURL) {
 		this.connectionURL = connectionURL;
 	}
 
+	/**
+	 * Returns the domain for connecting to the i2b2 instance
+	 * 
+	 * @return Domain i2b2 instance domain
+	 */
 	public String getDomain() {
 		return domain;
 	}
 
+	/**
+	 * Sets the domain for connecting to the i2b2 instance
+	 * 
+	 * @param domain i2b2 instance domain
+	 */
 	public void setDomain(String domain) {
 		this.domain = domain;
 	}
 
-	public String getUserName() {
-		return userName;
-	}
-
-	public void setUserName(String userName) {
-		this.userName = userName;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
+	/**
+	 * Gets a set of projects available
+	 * 
+	 * @return Available projects to the user
+	 */
 	public Set<String> getProjects() {
 		return projects.keySet();
 	}
 
+	/**
+	 * Returns if the i2b2 Factory is setup
+	 * 
+	 * @return i2b2 Factory is setup?
+	 */
 	public boolean isSetup() {
 		return setup;
 	}
 
+	/**
+	 * Returns the i2b2 token
+	 * 
+	 * @return i2b2 token
+	 */
 	public String getToken() {
 		return token;
 	}

@@ -1086,20 +1086,9 @@ public class ONTCell implements Cell {
 	// -------------------------------------------------------------------------
 	// Utility Methods
 	// -------------------------------------------------------------------------
-
-	static String convertStreamToString(java.io.InputStream is) {
-	    java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
-	    return s.hasNext() ? s.next() : "";
-	}
-	
 	@SuppressWarnings("unchecked")
 	private <T> T getType(T returnType, InputStream inputStream)
 			throws I2B2InterfaceException {
-//		String xml = convertStreamToString(inputStream);
-//		System.out.println(xml);
-//		JAXB.unmarshal(xml, type)
-//		ResponseMessageType rmt = JAXB.unmarshal(xml,
-//				ResponseMessageType.class);
 		ResponseMessageType rmt = JAXB.unmarshal(inputStream,
 				ResponseMessageType.class);
 		String status = rmt.getResponseHeader().getResultStatus().getStatus()

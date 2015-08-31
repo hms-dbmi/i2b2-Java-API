@@ -88,24 +88,6 @@ public class PMCell implements Cell {
 	private String token;
 	private long timeout;
 
-	/**
-	 * Sets up all the needed parameters to communicate with the Project
-	 * Management Cell
-	 * 
-	 * @param connectionURL
-	 *            URL of the cell
-	 * @param domain
-	 *            Domain
-	 * @param userName
-	 *            User name
-	 * @param password
-	 *            Password
-	 * @param projectId
-	 *            Project Id
-	 * @throws JAXBException
-	 *             An XML processing exception occurred
-	 * 
-	 */
 	public void setup(String connectionURL, String domain, String userName,
 			String password, String projectId) throws JAXBException {
 		// Setup Parameters
@@ -1976,11 +1958,18 @@ public class PMCell implements Cell {
 		SecurityType st = pmOF.createSecurityType();
 		st.setDomain(this.domain);
 		st.setUsername(this.userName);
+		
+		PasswordType pt = pmOF.createPasswordType();
+		
 		if(this.password != null) {
-			st.setPassword(this.password);
+			pt.setValue(this.password);
 		} else {
-			st.setPassword(this.token);
+			pt.setIsToken(true);
+			pt.setValue(this.token);
+			pt.setTokenMsTimeout((int) this.timeout); 
 		}
+		st.setPassword(pt);
+		
 		mht.setSecurity(st);
 
 		rmt.setMessageHeader(mht);
