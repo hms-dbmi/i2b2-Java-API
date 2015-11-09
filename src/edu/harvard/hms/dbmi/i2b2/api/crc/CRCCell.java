@@ -1,23 +1,12 @@
-/*
- *  This file is part of i2b2-Java-API.
- *
- *  The i2b2-Java-API is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  i2b2-Java-API is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with i2b2-Java-API.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package edu.harvard.hms.dbmi.i2b2.api.crc;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.GregorianCalendar;
@@ -977,9 +966,10 @@ public class CRCCell implements Cell {
 	@SuppressWarnings("unchecked")
 	private ResponseType getPDOResponseType(InputStream inputStream)
 			throws I2B2InterfaceException {
+		
 		ResponseMessageType rmt = JAXB.unmarshal(inputStream,
 				ResponseMessageType.class);
-
+		
 		if (!rmt.getResponseHeader().getResultStatus().getStatus().getType()
 				.equals("DONE")) {
 			throw new I2B2InterfaceException(rmt.getResponseHeader()
@@ -993,7 +983,8 @@ public class CRCCell implements Cell {
 
 	private InputStream runRequest(HttpClient client, String entity,
 			String urlAppend) throws ClientProtocolException, IOException {
-		// System.out.println("\n\n" + entity + "\n\n");
+		
+		
 		// Create Post
 
 		if ((urlAppend.startsWith("/")) && (connectionURL.endsWith("/"))) {
@@ -1143,13 +1134,5 @@ public class CRCCell implements Cell {
 
 		rmt.setMessageBody(bt);
 		return rmt;
-	}
-
-	@SuppressWarnings("unused")
-	private edu.harvard.hms.dbmi.i2b2.api.crc.xml.loader.RequestMessageType createMinimumLoaderBaseMessage() {
-		edu.harvard.hms.dbmi.i2b2.api.crc.xml.loader.RequestMessageType rmt = loaderOF
-				.createRequestMessageType();
-
-		return rmt;
-	}
+	}	
 }
