@@ -15,7 +15,7 @@ Setup is as simple as adding the dependency to your POM file.
 <dependency>
 	<groupId>edu.harvard.hms.dbmi.i2b2</groupId>
 	<artifactId>i2b2-Java-API</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.2</version>
 </dependency>
 
 ```
