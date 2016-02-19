@@ -3,14 +3,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>edu.harvard.hms.dbmi.i2b2</groupId>
 	<artifactId>i2b2-Java-API</artifactId>
-	<version>0.2</version>
+	<version>0.3</version>
 	<name>i2b2-Java-API</name>
 	<description>Java classes to abstract i2b2 XML communication</description>
-	
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
-	
+
 	<dependencies>
 		<!-- APACHE HTTP CLIENT -->
 		<dependency>
@@ -36,27 +36,36 @@
 					<downloadJavadocs>true</downloadJavadocs>
 				</configuration>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 			</plugin>
-			
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
-				  <execution>
-					<id>copy-dependencies</id>
-					<phase>package</phase>
-					<goals>
-						<goal>copy-dependencies</goal>
-					</goals>
-					<configuration>
-					  <includeScope>runtime</includeScope>
-					  <outputDirectory>${project.build.directory}/dependency-jars/</outputDirectory>
-					</configuration>
-				  </execution>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<includeScope>runtime</includeScope>
+							<outputDirectory>${project.build.directory}/dependency-jars/</outputDirectory>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 		</plugins>
