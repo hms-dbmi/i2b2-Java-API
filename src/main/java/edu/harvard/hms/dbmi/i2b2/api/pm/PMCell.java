@@ -43,6 +43,7 @@ import edu.harvard.hms.dbmi.i2b2.api.pm.xml.ParamsType;
 import edu.harvard.hms.dbmi.i2b2.api.pm.xml.PasswordType;
 import edu.harvard.hms.dbmi.i2b2.api.pm.xml.ProjectType;
 import edu.harvard.hms.dbmi.i2b2.api.pm.xml.ProjectsType;
+import edu.harvard.hms.dbmi.i2b2.api.pm.xml.Proxy;
 import edu.harvard.hms.dbmi.i2b2.api.pm.xml.RequestHeaderType;
 import edu.harvard.hms.dbmi.i2b2.api.pm.xml.RequestMessageType;
 import edu.harvard.hms.dbmi.i2b2.api.pm.xml.ResponseMessageType;
@@ -70,18 +71,20 @@ public class PMCell implements Cell {
 	private String password;
 	private String projectId;
 	private String connectionURL;
+	private boolean useProxy;
 	
 	private String token;
 	private long timeout;
 
 	public void setup(String connectionURL, String domain, String userName,
-			String password, String projectId) throws JAXBException {
+			String password, String projectId, boolean useProxy) throws JAXBException {
 		// Setup Parameters
 		this.connectionURL = connectionURL;
 		this.domain = domain;
 		this.userName = userName;
 		this.password = password;
 		this.projectId = projectId;
+		this.useProxy = useProxy;
 
 		setup();
 
@@ -104,24 +107,26 @@ public class PMCell implements Cell {
 	 * 
 	 */
 	public void setup(String connectionURL, String domain, String userName,
-			String password) throws JAXBException {
+			String password, boolean useProxy) throws JAXBException {
 		// Setup Parameters
 		this.connectionURL = connectionURL;
 		this.domain = domain;
 		this.userName = userName;
 		this.password = password;
-
+		this.useProxy = useProxy;
+		
 		setup();
 
 	}
 	
-	public void setup(String connectionURL, String domain, String userName, String token, long timeout, String project) throws JAXBException {
+	public void setup(String connectionURL, String domain, String userName, String token, long timeout, String project, boolean useProxy) throws JAXBException {
 		this.connectionURL = connectionURL;
 		this.domain = domain;
 		this.userName = userName;
 		this.token = token;
 		this.timeout = timeout;
 		this.projectId = project;
+		this.useProxy = useProxy;
 	}
 
 	/**
@@ -158,7 +163,7 @@ public class PMCell implements Cell {
 	public ConfigureType getUserConfiguration(HttpClient client,
 			String[] dataNeeded, String[] projects) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("/getServices");
 
 		GetUserConfigurationType guct = pmOF.createGetUserConfigurationType();
 		if(dataNeeded != null) {
@@ -1848,6 +1853,7 @@ public class PMCell implements Cell {
 	@SuppressWarnings("unchecked")
 	private <T> T getType(T returnType, InputStream inputStream)
 			throws I2B2InterfaceException {
+//		System.out.println("!" + convertStreamToString(inputStream));
 		ResponseMessageType rmt = JAXB.unmarshal(inputStream,
 				ResponseMessageType.class);
 		String status = rmt.getResponseHeader().getResultStatus().getStatus()
@@ -1859,6 +1865,11 @@ public class PMCell implements Cell {
 
 		return ((JAXBElement<T>) rmt.getMessageBody().getAny().get(0))
 				.getValue();
+	}
+	
+	static String convertStreamToString(java.io.InputStream is) {
+	    java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+	    return s.hasNext() ? s.next() : "";
 	}
 
 	/**
@@ -1899,7 +1910,7 @@ public class PMCell implements Cell {
 	 */
 	private InputStream runRequest(HttpClient client, String entity,
 			String urlAppend) throws UnsupportedOperationException, IOException {
-		// System.out.println("\n\n" + entity + "\n\n");
+//		System.out.println(entity);
 		// Create Post
 		if((urlAppend.startsWith("/")) && (connectionURL.endsWith("/"))) {
 			urlAppend = urlAppend.substring(1);
@@ -1922,11 +1933,28 @@ public class PMCell implements Cell {
 	 * @return Request Message Base
 	 */
 	private RequestMessageType createMinimumBaseMessage() {
+		return createMinimumBaseMessage(null);
+	}
+	
+	/**
+	 * Creates the minimum message needed to send a request to the i2b2 server
+	 * 
+	 * @param appendURL URL to append to message
+	 * @return Request Message Base
+	 */
+	private RequestMessageType createMinimumBaseMessage(String appendURL) {
 		RequestMessageType rmt = pmOF.createRequestMessageType();
 
 		// Create Message Header Type
 		MessageHeaderType mht = pmOF.createMessageHeaderType();
-
+		
+		// Set proxy
+		if((useProxy) && (appendURL != null)) {
+			Proxy proxy = new Proxy();
+			proxy.setRedirect_url("http://127.0.0.1:9090/i2b2/services/PMService" + appendURL);
+			mht.setProxy(proxy);
+		}
+		
 		// Set Sending Application
 		ApplicationType sat = pmOF.createApplicationType();
 		sat.setApplicationName("IRCT");
@@ -2065,6 +2093,14 @@ public class PMCell implements Cell {
 	 */
 	public void setConnectionURL(String connectionURL) {
 		this.connectionURL = connectionURL;
+	}
+
+	public boolean isUseProxy() {
+		return useProxy;
+	}
+
+	public void setUseProxy(boolean useProxy) {
+		this.useProxy = useProxy;
 	}
 
 }

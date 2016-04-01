@@ -31,7 +31,7 @@ public interface Cell {
 	 *             An Exception Occurred
 	 */
 	public void setup(String connectionURL, String domain, String userName,
-			String password, String projectId) throws JAXBException;
+			String password, String projectId, boolean useProxy) throws JAXBException;
 
 	/**
 	 * Sets up all needed parameters to communicate with the implementing
@@ -53,5 +53,5 @@ public interface Cell {
 	 *             An Exception Occurred
 	 */
 	public void setup(String connectionURL, String domain, String userName,
-			String token, long timeout, String projectId) throws JAXBException;
+			String token, long timeout, String projectId, boolean useProxy) throws JAXBException;
 }

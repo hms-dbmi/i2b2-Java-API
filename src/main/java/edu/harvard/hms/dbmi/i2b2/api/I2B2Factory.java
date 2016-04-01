@@ -34,6 +34,7 @@ public class I2B2Factory {
 	private String connectionURL;
 	private String domain;
 	private String userName;
+	private String password;
 	private Map<String, String> projects;
 	private boolean setup;
 	private String token;
@@ -68,23 +69,24 @@ public class I2B2Factory {
 	 * @throws I2B2InterfaceException An exception occurred
 	 */
 	public String login(String connectionURL, String domain, String userName,
-			String password) throws I2B2InterfaceException {
+			String password, boolean saveToken) throws I2B2InterfaceException {
 		String token = null;
 		try {
 			PMCell pmCell = new PMCell();
 			this.connectionURL = connectionURL;
 			this.domain = domain;
 			this.userName = userName;
+			this.password = password;
 			pmCell.setup(connectionURL, domain, userName, password);
 
 			HttpClient httpClient = HttpClients.createDefault();
 			ConfigureType configureType = pmCell.getUserConfiguration(
 					httpClient, null, new String[] { "undefined" });
-
-			this.token = configureType.getUser().getPassword().getValue();
-			this.tokenTimeOut = configureType.getUser().getPassword()
+			if(saveToken) {
+				this.token = configureType.getUser().getPassword().getValue();
+				this.tokenTimeOut = configureType.getUser().getPassword()
 					.getTokenMsTimeout();
-
+			}
 			for (ProjectType pt : configureType.getUser().getProject()) {
 				this.projects.put(pt.getId(), pt.getPath());
 			}
@@ -108,7 +110,7 @@ public class I2B2Factory {
 	 * @return i2b2 Cell connector
 	 * @throws I2B2InterfaceException An error occurred
 	 */
-	public Cell getCell(String cellName, String project)
+	public Cell getCell(String cellName, String project, boolean withToken)
 			throws I2B2InterfaceException {
 		if (!this.setup) {
 			throw new I2B2InterfaceException("Factory has not been setup");
@@ -151,8 +153,11 @@ public class I2B2Factory {
 					}
 				}
 				try {
-					cell.setup(cellURL, domain, userName, token, tokenTimeOut,
-							project);
+					if(withToken) {
+						cell.setup(cellURL, domain, userName, token, tokenTimeOut, project);
+					} else {
+						cell.setup(cellURL, domain, userName, password, project);
+					}
 				} catch (JAXBException e) {
 					throw new I2B2InterfaceException("Unable to initiate "
 							+ cellName, e);

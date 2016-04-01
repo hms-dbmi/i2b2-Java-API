@@ -56,6 +56,7 @@ import edu.harvard.hms.dbmi.i2b2.api.ont.xml.UpdateCrcConceptType;
 import edu.harvard.hms.dbmi.i2b2.api.ont.xml.VocabRequestType;
 import edu.harvard.hms.dbmi.i2b2.api.ont.xml.GetOntProcessStatusType.ProcessEndDate;
 import edu.harvard.hms.dbmi.i2b2.api.ont.xml.GetOntProcessStatusType.ProcessStartDate;
+import edu.harvard.hms.dbmi.i2b2.api.ont.xml.Proxy;
 
 /**
  * The Ontology Management Cell communication class makes requests to the i2b2
@@ -74,6 +75,7 @@ public class ONTCell implements Cell {
 	private String password;
 	private String projectId;
 	private String connectionURL;
+	private boolean useProxy;
 	
 	private String token;
 	private long timeout;
@@ -97,13 +99,14 @@ public class ONTCell implements Cell {
 	 *             An Exception Occurred
 	 */
 	public void setup(String connectionURL, String domain, String userName,
-			String password, String projectId) throws JAXBException {
+			String password, String projectId, boolean useProxy) throws JAXBException {
 		// Setup Parameters
 		this.connectionURL = connectionURL;
 		this.domain = domain;
 		this.userName = userName;
 		this.password = password;
 		this.projectId = projectId;
+		this.useProxy = useProxy;
 
 		// Setup System
 		setup();
@@ -123,13 +126,14 @@ public class ONTCell implements Cell {
 		ontMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 	}
 	
-	public void setup(String connectionURL, String domain, String userName, String token, long timeout, String project) throws JAXBException {
+	public void setup(String connectionURL, String domain, String userName, String token, long timeout, String project, boolean useProxy) throws JAXBException {
 		this.connectionURL = connectionURL;
 		this.domain = domain;
 		this.userName = userName;
 		this.token = token;
 		this.timeout = timeout;
 		this.projectId = project;
+		this.useProxy = useProxy;
 		
 		// Setup System
 		setup();
@@ -165,7 +169,7 @@ public class ONTCell implements Cell {
 			I2B2InterfaceException {
 
 		// Create the XML Object
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("/getCategories");
 
 		GetCategoriesType gct = ontOF.createGetCategoriesType();
 		gct.setBlob(blobCategories);
@@ -218,7 +222,7 @@ public class ONTCell implements Cell {
 			I2B2InterfaceException {
 
 		// Create the XML Object
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("/getChildren");
 
 		GetChildrenType gct = ontOF.createGetChildrenType();
 		gct.setParent(parentKey);
@@ -279,7 +283,7 @@ public class ONTCell implements Cell {
 			int max, String self, boolean synonyms, String type)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("/getNameInfo");
 
 		VocabRequestType vrt = ontOF.createVocabRequestType();
 		vrt.setBlob(blob);
@@ -290,8 +294,12 @@ public class ONTCell implements Cell {
 		mst.setValue(matchStr);
 
 		vrt.setMatchStr(mst);
-		vrt.setMax(max);
-		vrt.setSelf(self);
+		if (max != -1) {
+			vrt.setMax(max);
+		}
+		if(self != null) {
+			vrt.setSelf(self);
+		}
 		vrt.setSynonyms(synonyms);
 		vrt.setType(type);
 
@@ -340,6 +348,7 @@ public class ONTCell implements Cell {
 		RequestMessageType rmt = createMinimumBaseMessage();
 
 		GetTermInfoType gtit = ontOF.createGetTermInfoType();
+		
 		gtit.setBlob(blob);
 		gtit.setHiddens(hidden);
 		gtit.setSynonyms(synonyms);
@@ -433,19 +442,30 @@ public class ONTCell implements Cell {
 			int max, String self, boolean synonyms, String type)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("/getCodeInfo");
 
 		VocabRequestType vrt = ontOF.createVocabRequestType();
 		vrt.setBlob(blob);
-		vrt.setCategory(category);
+		if(category != null) {
+			vrt.setCategory(category);
+		}
 		vrt.setHiddens(hidden);
+		
 		MatchStrType mst = ontOF.createMatchStrType();
-		mst.setStrategy(strategy);
+		if(strategy != null) {
+			mst.setStrategy(strategy);
+		}
 		mst.setValue(matchStr);
-
 		vrt.setMatchStr(mst);
-		vrt.setMax(max);
-		vrt.setSelf(self);
+		
+		if(max != -1) {
+			vrt.setMax(max);
+		}
+		
+		if(self != null ) {
+			vrt.setSelf(self);
+		}
+		
 		vrt.setSynonyms(synonyms);
 		vrt.setType(type);
 
@@ -1088,6 +1108,11 @@ public class ONTCell implements Cell {
 		return ((JAXBElement<T>) rmt.getMessageBody().getAny().get(0))
 				.getValue();
 	}
+	
+	private String convertStreamToString(java.io.InputStream is) {
+	    java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+	    return s.hasNext() ? s.next() : "";
+	}
 
 	/**
 	 * Check for any errors and throw an exception if they occur
@@ -1127,12 +1152,18 @@ public class ONTCell implements Cell {
 	 */
 	private InputStream runRequest(HttpClient client, String entity,
 			String urlAppend) throws UnsupportedOperationException, IOException {
-//		 System.out.println("\n\n" + entity + "\n\n");
+//		System.out.println(entity);
 		// Create Post
+		
 		if((urlAppend.startsWith("/")) && (connectionURL.endsWith("/"))) {
 			urlAppend = urlAppend.substring(1);
 		}
-		HttpPost post = new HttpPost(connectionURL + urlAppend);
+		HttpPost post;
+		if(!useProxy) {
+			post = new HttpPost(connectionURL + urlAppend);
+		} else {
+			post = new HttpPost(connectionURL);
+		}
 		// Set Header
 		post.setHeader("Content-Type", "text/xml");
 		post.setEntity(new StringEntity(entity));
@@ -1147,11 +1178,28 @@ public class ONTCell implements Cell {
 	 * @return Request Message Base
 	 */
 	private RequestMessageType createMinimumBaseMessage() {
+		return createMinimumBaseMessage(null);
+	}
+	
+	/**
+	 * Creates the minimum message needed to send a request to the i2b2 server
+	 * 
+	 * @return Request Message Base
+	 */
+	private RequestMessageType createMinimumBaseMessage(String appendURL) {
 		RequestMessageType rmt = ontOF.createRequestMessageType();
 
 		// Create Message Header Type
 		MessageHeaderType mht = ontOF.createMessageHeaderType();
 
+		// Set proxy
+		if((useProxy) && (appendURL != null)) {
+			Proxy proxy = new Proxy();
+			proxy.setRedirect_url("http://127.0.0.1:9090/i2b2/services/OntologyService" + appendURL);
+//			proxy.setRedirect_url("http://192.168.56.101:9090/i2b2/services/OntologyService" + appendURL);
+			mht.setProxy(proxy);
+		}
+				
 		// Set Sending Application
 		ApplicationType sat = ontOF.createApplicationType();
 		sat.setApplicationName("IRCT");
@@ -1290,6 +1338,14 @@ public class ONTCell implements Cell {
 	 */
 	public void setConnectionURL(String connectionURL) {
 		this.connectionURL = connectionURL;
+	}
+
+	public boolean isUseProxy() {
+		return useProxy;
+	}
+
+	public void setUseProxy(boolean useProxy) {
+		this.useProxy = useProxy;
 	}
 
 }
