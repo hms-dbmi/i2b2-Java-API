@@ -79,6 +79,7 @@ public class ONTCell implements Cell {
 	
 	private String token;
 	private long timeout;
+	private String proxyURL;
 
 	/**
 	 * 
@@ -99,7 +100,7 @@ public class ONTCell implements Cell {
 	 *             An Exception Occurred
 	 */
 	public void setup(String connectionURL, String domain, String userName,
-			String password, String projectId, boolean useProxy) throws JAXBException {
+			String password, String projectId, boolean useProxy, String proxyURL) throws JAXBException {
 		// Setup Parameters
 		this.connectionURL = connectionURL;
 		this.domain = domain;
@@ -107,7 +108,20 @@ public class ONTCell implements Cell {
 		this.password = password;
 		this.projectId = projectId;
 		this.useProxy = useProxy;
-
+		this.proxyURL = proxyURL;
+		// Setup System
+		setup();
+	}
+	
+	public void setup(String connectionURL, String domain, String userName, String token, long timeout, String project, boolean useProxy, String proxyURL) throws JAXBException {
+		this.connectionURL = connectionURL;
+		this.domain = domain;
+		this.userName = userName;
+		this.token = token;
+		this.timeout = timeout;
+		this.projectId = project;
+		this.useProxy = useProxy;
+		this.proxyURL = proxyURL;
 		// Setup System
 		setup();
 	}
@@ -126,18 +140,7 @@ public class ONTCell implements Cell {
 		ontMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 	}
 	
-	public void setup(String connectionURL, String domain, String userName, String token, long timeout, String project, boolean useProxy) throws JAXBException {
-		this.connectionURL = connectionURL;
-		this.domain = domain;
-		this.userName = userName;
-		this.token = token;
-		this.timeout = timeout;
-		this.projectId = project;
-		this.useProxy = useProxy;
-		
-		// Setup System
-		setup();
-	}
+	
 
 	/**
 	 * Returns a list of categories available for a given user.
@@ -345,7 +348,7 @@ public class ONTCell implements Cell {
 			String self, boolean hidden, int max, boolean synonyms,
 			String type) throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("/getTermInfo");
 
 		GetTermInfoType gtit = ontOF.createGetTermInfoType();
 		
@@ -388,7 +391,7 @@ public class ONTCell implements Cell {
 	public ConceptsType getSchemes(HttpClient client, boolean blob, String type)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("/getSchemes");
 
 		GetReturnType gst = ontOF.createGetReturnType();
 		gst.setBlob(blob);
@@ -498,7 +501,7 @@ public class ONTCell implements Cell {
 	public void addChild(HttpClient client, ConceptType conceptType)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("/addChild");
 
 		rmt.getMessageBody().getAny().add(ontOF.createAddChild(conceptType));
 
@@ -531,7 +534,7 @@ public class ONTCell implements Cell {
 	public void modifyChild(HttpClient client, boolean inclSynonyms,
 			ConceptType conceptType) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("/modifyChild");
 
 		ModifyChildType mct = ontOF.createModifyChildType();
 		mct.setInclSynonyms(inclSynonyms);
@@ -572,7 +575,7 @@ public class ONTCell implements Cell {
 			boolean hidden, String operationType, boolean synonyms)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("/updateCRCConcept");
 
 		UpdateCrcConceptType ucct = ontOF.createUpdateCrcConceptType();
 		ucct.setHiddens(hidden);
@@ -629,7 +632,7 @@ public class ONTCell implements Cell {
 			String processStatusCd, String processTypeCd) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException,
 			DatatypeConfigurationException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("/getOntologyProcessStatus");
 
 		GetOntProcessStatusType opst = ontOF.createGetOntProcessStatusType();
 		opst.setMaxReturnRecords(max);
@@ -688,7 +691,7 @@ public class ONTCell implements Cell {
 	public DirtyValueType getDirtyState(HttpClient client, boolean blob,
 			String type) throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("/getDirtyState");
 
 		GetReturnType gst = ontOF.createGetReturnType();
 		gst.setBlob(blob);
@@ -733,7 +736,7 @@ public class ONTCell implements Cell {
 	public OntologyProcessStatusType updateConceptTotalNum(HttpClient client,
 			String operationType) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("/updateConceptTotalNum");
 
 		UpdateConceptTotalNumType uctnt = ontOF
 				.createUpdateConceptTotalNumType();
@@ -786,7 +789,7 @@ public class ONTCell implements Cell {
 			boolean hidden, String strategy, int max,
 			String self, boolean synonyms, String type) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("/getModifiers");
 
 		GetModifiersType gmt = ontOF.createGetModifiersType();
 		gmt.setBlob(blob);
@@ -847,7 +850,7 @@ public class ONTCell implements Cell {
 			int max, String self, boolean synonyms, String type)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("/getModifierInfo");
 
 		GetModifierInfoType gmit = ontOF.createGetModifierInfoType();
 
@@ -910,7 +913,7 @@ public class ONTCell implements Cell {
 			String category, boolean hidden, String strategy, int max,
 			String parent, boolean synonyms, String type) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("/getModifierChidlren");
 
 		GetModifierChildrenType gmct = ontOF.createGetModifierChildrenType();
 		gmct.setAppliedConcept(appliedConcept);
@@ -970,7 +973,7 @@ public class ONTCell implements Cell {
 			int max, String self, boolean synonyms, String type)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("/getModifierNameInfo");
 
 		VocabRequestType vrt = ontOF.createVocabRequestType();
 		vrt.setBlob(blob);
@@ -1032,7 +1035,7 @@ public class ONTCell implements Cell {
 			int max, String self, boolean synonyms, String type)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("/getModifierCodeInfo");
 
 		VocabRequestType vrt = ontOF.createVocabRequestType();
 		vrt.setBlob(blob);
@@ -1077,7 +1080,7 @@ public class ONTCell implements Cell {
 	public void addModifier(HttpClient client, ModifierType modifierType)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("/addModifier");
 
 		rmt.getMessageBody().getAny()
 				.add(ontOF.createAddModifier(modifierType));
@@ -1155,30 +1158,22 @@ public class ONTCell implements Cell {
 //		System.out.println(entity);
 		// Create Post
 		
-		if((urlAppend.startsWith("/")) && (connectionURL.endsWith("/"))) {
-			urlAppend = urlAppend.substring(1);
+		String postURL = connectionURL;
+		
+		if(!this.useProxy) {
+			if ((urlAppend.startsWith("/")) && (connectionURL.endsWith("/"))) {
+				urlAppend = urlAppend.substring(1);
+			}
+			postURL = postURL + urlAppend;
 		}
-		HttpPost post;
-		if(!useProxy) {
-			post = new HttpPost(connectionURL + urlAppend);
-		} else {
-			post = new HttpPost(connectionURL);
-		}
+
+		HttpPost post = new HttpPost(postURL);
 		// Set Header
 		post.setHeader("Content-Type", "text/xml");
 		post.setEntity(new StringEntity(entity));
 
 		HttpResponse response = client.execute(post);
 		return response.getEntity().getContent();
-	}
-
-	/**
-	 * Creates the minimum message needed to send a request to the i2b2 server
-	 * 
-	 * @return Request Message Base
-	 */
-	private RequestMessageType createMinimumBaseMessage() {
-		return createMinimumBaseMessage(null);
 	}
 	
 	/**
@@ -1195,8 +1190,7 @@ public class ONTCell implements Cell {
 		// Set proxy
 		if((useProxy) && (appendURL != null)) {
 			Proxy proxy = new Proxy();
-			proxy.setRedirect_url("http://127.0.0.1:9090/i2b2/services/OntologyService" + appendURL);
-//			proxy.setRedirect_url("http://192.168.56.101:9090/i2b2/services/OntologyService" + appendURL);
+			proxy.setRedirect_url(this.proxyURL + appendURL);
 			mht.setProxy(proxy);
 		}
 				

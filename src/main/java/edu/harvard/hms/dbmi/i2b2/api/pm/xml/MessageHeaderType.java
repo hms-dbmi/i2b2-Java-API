@@ -71,7 +71,7 @@ public class MessageHeaderType {
     protected BigDecimal i2B2VersionCompatible;
     @XmlElement(name = "hl7_version_compatible", required = true)
     protected BigDecimal hl7VersionCompatible;
-    @XmlElement(name = "proxy", required = true)
+    @XmlElement(name = "proxy", required = false)
 	private Proxy proxy;
     @XmlElement(name = "sending_application", required = true)
     protected ApplicationType sendingApplication;

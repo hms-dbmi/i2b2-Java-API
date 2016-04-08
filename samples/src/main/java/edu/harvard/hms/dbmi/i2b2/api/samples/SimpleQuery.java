@@ -189,6 +189,6 @@ public class SimpleQuery {
 	
 	private void setup(String userName, String domain, String password,
 			String crcCellURL, String project) throws JAXBException {
-		crcCell.setup(crcCellURL, domain, userName, password, project);
+		crcCell.setup(crcCellURL, domain, userName, password, project, false, null);
 	}
 }

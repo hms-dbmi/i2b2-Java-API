@@ -193,11 +193,11 @@ public class FactorySimpleQuery {
 		
 		I2B2Factory i2b2Factory = new I2B2Factory();
 		i2b2Factory.setup();
-		i2b2Factory.login(connectionURL, domain, userName, password);
+		i2b2Factory.login(connectionURL, domain, userName, password, true);
 		for(String projectId : i2b2Factory.getProjects()) {
 			System.out.println(projectId);
 		}
 		
-		crcCell = (CRCCell) i2b2Factory.getCell("CRC", project);
+		crcCell = (CRCCell) i2b2Factory.getCell("CRC", project, true);
 	}
 }

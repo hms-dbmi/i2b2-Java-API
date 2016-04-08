@@ -52,6 +52,7 @@ import edu.harvard.hms.dbmi.i2b2.api.crc.xml.pdo.PatientListType;
 import edu.harvard.hms.dbmi.i2b2.api.crc.xml.pdo.PatientPrimaryKeyType;
 import edu.harvard.hms.dbmi.i2b2.api.crc.xml.pdo.PdoQryHeaderType;
 import edu.harvard.hms.dbmi.i2b2.api.crc.xml.pdo.PdoRequestTypeType;
+import edu.harvard.hms.dbmi.i2b2.api.crc.xml.pdo.Proxy;
 import edu.harvard.hms.dbmi.i2b2.api.crc.xml.pdo.RequestHeaderType;
 import edu.harvard.hms.dbmi.i2b2.api.crc.xml.pdo.RequestMessageType;
 import edu.harvard.hms.dbmi.i2b2.api.crc.xml.pdo.ResponseMessageType;
@@ -107,21 +108,42 @@ public class CRCCell implements Cell {
 	private String password;
 	private String projectId;
 	private String connectionURL;
+	private boolean useProxy;
+	private String proxyURL;
 
 	private String token;
 	private long timeout;
 
+	
+	@Override
 	public void setup(String connectionURL, String domain, String userName,
-			String password, String projectId) throws JAXBException {
-		// Setup Parameters
+			String password, String projectId, boolean useProxy, String proxyURL)
+			throws JAXBException {
 		this.connectionURL = connectionURL;
 		this.domain = domain;
 		this.userName = userName;
-		this.password = password;
+		this.token = token;
+		this.timeout = timeout;
 		this.projectId = projectId;
-
+		this.useProxy = useProxy;	
+		this.proxyURL = proxyURL;
 		setup();
 	}
+
+	@Override
+	public void setup(String connectionURL, String domain, String userName,
+			String token, long timeout, String projectId, boolean useProxy, String proxyURL)
+			throws JAXBException {
+		this.connectionURL = connectionURL;
+		this.domain = domain;
+		this.userName = userName;
+		this.token = token;
+		this.timeout = timeout;
+		this.projectId = projectId;
+		this.useProxy = useProxy;
+		this.proxyURL = proxyURL;
+		setup();
+	}	
 
 	/**
 	 * Sets up the system without any parameters of the Data Repository Cell
@@ -150,18 +172,6 @@ public class CRCCell implements Cell {
 		loaderMarshaller = loaderJC.createMarshaller();
 		loaderMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 	}
-	
-	public void setup(String connectionURL, String domain, String userName,
-			String token, long timeout, String project) throws JAXBException {
-		this.connectionURL = connectionURL;
-		this.domain = domain;
-		this.userName = userName;
-		this.token = token;
-		this.timeout = timeout;
-		this.projectId = project;
-
-		setup();
-	}
 
 	// -------------------------------------------------------------------------
 	// PSM Calls
@@ -187,7 +197,7 @@ public class CRCCell implements Cell {
 			HttpClient client, String queryMasterId)
 			throws ClientProtocolException, I2B2InterfaceException,
 			IOException, JAXBException {
-		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType rmt = createMinimumPSMBaseMessage(edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PsmRequestTypeType.CRC_QRY_GET_REQUEST_XML_FROM_QUERY_MASTER_ID);
+		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType rmt = createMinimumPSMBaseMessage(edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PsmRequestTypeType.CRC_QRY_GET_REQUEST_XML_FROM_QUERY_MASTER_ID, "/request");
 
 		MasterRequestType mrt = psmOF.createMasterRequestType();
 		mrt.setQueryMasterId(queryMasterId);
@@ -225,7 +235,7 @@ public class CRCCell implements Cell {
 			HttpClient client, String userId, int fetchSize)
 			throws ClientProtocolException, I2B2InterfaceException,
 			IOException, JAXBException {
-		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType rmt = createMinimumPSMBaseMessage(edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PsmRequestTypeType.CRC_QRY_GET_QUERY_MASTER_LIST_FROM_USER_ID);
+		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType rmt = createMinimumPSMBaseMessage(edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PsmRequestTypeType.CRC_QRY_GET_QUERY_MASTER_LIST_FROM_USER_ID, "/request");
 
 		UserRequestType urt = psmOF.createUserRequestType();
 		urt.setUserId(userId);
@@ -265,7 +275,7 @@ public class CRCCell implements Cell {
 			HttpClient client, String groupId, int fetchSize)
 			throws JAXBException, ClientProtocolException,
 			I2B2InterfaceException, IOException {
-		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType rmt = createMinimumPSMBaseMessage(edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PsmRequestTypeType.CRC_QRY_GET_QUERY_MASTER_LIST_FROM_GROUP_ID);
+		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType rmt = createMinimumPSMBaseMessage(edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PsmRequestTypeType.CRC_QRY_GET_QUERY_MASTER_LIST_FROM_GROUP_ID, "/request");
 
 		UserRequestType urt = psmOF.createUserRequestType();
 		urt.setGroupId(groupId);
@@ -318,7 +328,7 @@ public class CRCCell implements Cell {
 			edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PanelType... panels)
 			throws JAXBException, ClientProtocolException,
 			I2B2InterfaceException, IOException {
-		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType rmt = createMinimumPSMBaseMessage(edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PsmRequestTypeType.CRC_QRY_RUN_QUERY_INSTANCE_FROM_QUERY_DEFINITION);
+		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType rmt = createMinimumPSMBaseMessage(edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PsmRequestTypeType.CRC_QRY_RUN_QUERY_INSTANCE_FROM_QUERY_DEFINITION, "/request");
 
 		QueryDefinitionRequestType qdrt = psmOF
 				.createQueryDefinitionRequestType();
@@ -372,7 +382,7 @@ public class CRCCell implements Cell {
 	public List<QueryResultInstanceType> getQueryResultInstanceListFromQueryInstanceId(
 			HttpClient client, String queryInstanceId) throws JAXBException,
 			ClientProtocolException, I2B2InterfaceException, IOException {
-		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType rmt = createMinimumPSMBaseMessage(edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PsmRequestTypeType.CRC_QRY_GET_QUERY_RESULT_INSTANCE_LIST_FROM_QUERY_INSTANCE_ID);
+		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType rmt = createMinimumPSMBaseMessage(edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PsmRequestTypeType.CRC_QRY_GET_QUERY_RESULT_INSTANCE_LIST_FROM_QUERY_INSTANCE_ID, "/request");
 		InstanceRequestType irt = psmOF.createInstanceRequestType();
 
 		irt.setQueryInstanceId(queryInstanceId);
@@ -408,7 +418,7 @@ public class CRCCell implements Cell {
 			String userId, String queryMasterId)
 			throws ClientProtocolException, I2B2InterfaceException,
 			IOException, JAXBException {
-		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType rmt = createMinimumPSMBaseMessage(edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PsmRequestTypeType.CRC_QRY_DELETE_QUERY_MASTER);
+		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType rmt = createMinimumPSMBaseMessage(edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PsmRequestTypeType.CRC_QRY_DELETE_QUERY_MASTER, "/request");
 		MasterDeleteRequestType mdrt = psmOF.createMasterDeleteRequestType();
 
 		mdrt.setUserId(userId);
@@ -447,7 +457,7 @@ public class CRCCell implements Cell {
 			String userId, String queryMasterId, String queryName)
 			throws JAXBException, ClientProtocolException,
 			I2B2InterfaceException, IOException {
-		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType rmt = createMinimumPSMBaseMessage(edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PsmRequestTypeType.CRC_QRY_RENAME_QUERY_MASTER);
+		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType rmt = createMinimumPSMBaseMessage(edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PsmRequestTypeType.CRC_QRY_RENAME_QUERY_MASTER, "/request");
 		MasterRenameRequestType mrrt = psmOF.createMasterRenameRequestType();
 		mrrt.setUserId(userId);
 		mrrt.setQueryMasterId(queryMasterId);
@@ -482,7 +492,7 @@ public class CRCCell implements Cell {
 			HttpClient client, String queryResultInstanceId)
 			throws ClientProtocolException, I2B2InterfaceException,
 			IOException, JAXBException {
-		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType rmt = createMinimumPSMBaseMessage(edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PsmRequestTypeType.CRC_QRY_GET_RESULT_DOCUMENT_FROM_RESULT_INSTANCE_ID);
+		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType rmt = createMinimumPSMBaseMessage(edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PsmRequestTypeType.CRC_QRY_GET_RESULT_DOCUMENT_FROM_RESULT_INSTANCE_ID, "/request");
 		ResultRequestType rrt = psmOF.createResultRequestType();
 
 		rrt.setQueryResultInstanceId(queryResultInstanceId);
@@ -517,7 +527,7 @@ public class CRCCell implements Cell {
 			HttpClient client, AnalysisDefinitionType analysisDefinition)
 			throws JAXBException, ClientProtocolException,
 			I2B2InterfaceException, IOException {
-		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType rmt = createMinimumPSMBaseMessage(edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PsmRequestTypeType.CRC_QRY_RUN_QUERY_INSTANCE_FROM_ANALYSIS_DEFINITION);
+		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType rmt = createMinimumPSMBaseMessage(edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PsmRequestTypeType.CRC_QRY_RUN_QUERY_INSTANCE_FROM_ANALYSIS_DEFINITION, "/request");
 		AnalysisDefinitionRequestType adrt = psmOF
 				.createAnalysisDefinitionRequestType();
 		adrt.setAnalysisDefinition(analysisDefinition);
@@ -552,7 +562,7 @@ public class CRCCell implements Cell {
 	public InstanceResultResponseType cancelQuery(HttpClient client,
 			String queryInstanceId) throws JAXBException,
 			ClientProtocolException, I2B2InterfaceException, IOException {
-		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType rmt = createMinimumPSMBaseMessage(edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PsmRequestTypeType.CRC_QRY_CANCEL_QUERY);
+		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType rmt = createMinimumPSMBaseMessage(edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PsmRequestTypeType.CRC_QRY_CANCEL_QUERY, "/request");
 		InstanceRequestType irt = psmOF.createInstanceRequestType();
 
 		irt.setQueryInstanceId(queryInstanceId);
@@ -604,7 +614,7 @@ public class CRCCell implements Cell {
 			boolean blob, boolean techdata, OutputOptionSelectType select)
 			throws JAXBException, ClientProtocolException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumPDOBaseMessage(PdoRequestTypeType.GET_PDO_FROM_INPUT_LIST);
+		RequestMessageType rmt = createMinimumPDOBaseMessage(PdoRequestTypeType.GET_PDO_FROM_INPUT_LIST, "/pdorequest");
 		GetPDOFromInputListRequestType ilrt = pdoOF
 				.createGetPDOFromInputListRequestType();
 
@@ -685,7 +695,7 @@ public class CRCCell implements Cell {
 			boolean blob, boolean techdata, OutputOptionSelectType select)
 			throws JAXBException, ClientProtocolException,
 			I2B2InterfaceException, IOException, DatatypeConfigurationException {
-		RequestMessageType rmt = createMinimumPDOBaseMessage(PdoRequestTypeType.GET_OBSERVATIONFACT_BY_PRIMARY_KEY);
+		RequestMessageType rmt = createMinimumPDOBaseMessage(PdoRequestTypeType.GET_OBSERVATIONFACT_BY_PRIMARY_KEY, "/pdorequest");
 		GetObservationFactByPrimaryKeyRequestType irct = pdoOF
 				.createGetObservationFactByPrimaryKeyRequestType();
 
@@ -745,7 +755,7 @@ public class CRCCell implements Cell {
 			String patientId, boolean onlyKeys, boolean blob, boolean techdata,
 			OutputOptionSelectType select) throws JAXBException,
 			ClientProtocolException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumPDOBaseMessage(PdoRequestTypeType.GET_PATIENT_BY_PRIMARY_KEY);
+		RequestMessageType rmt = createMinimumPDOBaseMessage(PdoRequestTypeType.GET_PATIENT_BY_PRIMARY_KEY, "/pdorequest");
 		GetPatientByPrimaryKeyRequestType irct = pdoOF
 				.createGetPatientByPrimaryKeyRequestType();
 
@@ -801,7 +811,7 @@ public class CRCCell implements Cell {
 			boolean techdata, OutputOptionSelectType select)
 			throws JAXBException, ClientProtocolException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumPDOBaseMessage(PdoRequestTypeType.GET_EVENT_BY_PRIMARY_KEY);
+		RequestMessageType rmt = createMinimumPDOBaseMessage(PdoRequestTypeType.GET_EVENT_BY_PRIMARY_KEY, "/pdorequest");
 		GetEventByPrimaryKeyRequestType irct = pdoOF
 				.createGetEventByPrimaryKeyRequestType();
 
@@ -856,7 +866,7 @@ public class CRCCell implements Cell {
 			boolean techdata, OutputOptionSelectType select)
 			throws JAXBException, ClientProtocolException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumPDOBaseMessage(PdoRequestTypeType.GET_CONCEPT_BY_PRIMARY_KEY);
+		RequestMessageType rmt = createMinimumPDOBaseMessage(PdoRequestTypeType.GET_CONCEPT_BY_PRIMARY_KEY, "/pdorequest");
 		GetConceptByPrimaryKeyRequestType irct = pdoOF
 				.createGetConceptByPrimaryKeyRequestType();
 
@@ -912,7 +922,7 @@ public class CRCCell implements Cell {
 			boolean blob, boolean techdata, OutputOptionSelectType select)
 			throws JAXBException, ClientProtocolException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumPDOBaseMessage(PdoRequestTypeType.GET_OBSERVER_BY_PRIMARY_KEY);
+		RequestMessageType rmt = createMinimumPDOBaseMessage(PdoRequestTypeType.GET_OBSERVER_BY_PRIMARY_KEY, "/pdorequest");
 		GetObserverByPrimaryKeyRequestType irct = pdoOF
 				.createGetObserverByPrimaryKeyRequestType();
 
@@ -986,12 +996,16 @@ public class CRCCell implements Cell {
 		
 		
 		// Create Post
-
-		if ((urlAppend.startsWith("/")) && (connectionURL.endsWith("/"))) {
-			urlAppend = urlAppend.substring(1);
+		String postURL = connectionURL;
+		
+		if(!this.useProxy) {
+			if ((urlAppend.startsWith("/")) && (connectionURL.endsWith("/"))) {
+				urlAppend = urlAppend.substring(1);
+			}
+			postURL = postURL + urlAppend;
 		}
 
-		HttpPost post = new HttpPost(connectionURL + urlAppend);
+		HttpPost post = new HttpPost(postURL);
 		// Set Header
 		post.setHeader("Content-Type", "text/xml");
 		post.setEntity(new StringEntity(entity));
@@ -1001,11 +1015,17 @@ public class CRCCell implements Cell {
 
 	}
 
-	private RequestMessageType createMinimumPDOBaseMessage(
-			PdoRequestTypeType requestPDOType) {
+	private RequestMessageType createMinimumPDOBaseMessage(PdoRequestTypeType requestPDOType, String appendURL) {
 		RequestMessageType rmt = pdoOF.createRequestMessageType();
 		// Create Message Header Type
 		MessageHeaderType mht = pdoOF.createMessageHeaderType();
+		
+		// Set proxy
+		if((useProxy) && (appendURL != null)) {
+			Proxy proxy = new Proxy();
+			proxy.setRedirect_url(this.proxyURL + appendURL);
+			mht.setProxy(proxy);
+		}
 
 		// Set Sending Application
 		ApplicationType sat = pdoOF.createApplicationType();
@@ -1061,13 +1081,20 @@ public class CRCCell implements Cell {
 	}
 
 	private edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType createMinimumPSMBaseMessage(
-			PsmRequestTypeType requestPSMType) {
+			PsmRequestTypeType requestPSMType, String appendURL) {
 		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType rmt = psmOF
 				.createRequestMessageType();
 
 		// Create Message Header Type
 		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.MessageHeaderType mht = psmOF
 				.createMessageHeaderType();
+		
+		// Set proxy
+		if((useProxy) && (appendURL != null)) {
+			edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.Proxy proxy = new edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.Proxy();
+			proxy.setRedirect_url(this.proxyURL + appendURL);
+			mht.setProxy(proxy);
+		}
 
 		// Set Sending Application
 		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.ApplicationType sat = psmOF
@@ -1134,5 +1161,6 @@ public class CRCCell implements Cell {
 
 		rmt.setMessageBody(bt);
 		return rmt;
-	}	
+	}
+
 }

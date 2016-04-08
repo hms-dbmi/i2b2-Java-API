@@ -73,7 +73,7 @@ public class MessageHeaderType {
     protected BigDecimal hl7VersionCompatible;
     @XmlElement(name = "proxy", required = true)
 	private Proxy proxy;
-    @XmlElement(name = "sending_application", required = true)
+    @XmlElement(name = "sending_application", required = false)
     protected ApplicationType sendingApplication;
     @XmlElement(name = "sending_facility", required = true)
     protected FacilityType sendingFacility;

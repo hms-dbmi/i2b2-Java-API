@@ -77,7 +77,7 @@ public class I2B2Factory {
 			this.domain = domain;
 			this.userName = userName;
 			this.password = password;
-			pmCell.setup(connectionURL, domain, userName, password);
+			pmCell.setup(connectionURL, domain, userName, password, false, null);
 
 			HttpClient httpClient = HttpClients.createDefault();
 			ConfigureType configureType = pmCell.getUserConfiguration(
@@ -154,9 +154,9 @@ public class I2B2Factory {
 				}
 				try {
 					if(withToken) {
-						cell.setup(cellURL, domain, userName, token, tokenTimeOut, project);
+						cell.setup(cellURL, domain, userName, token, tokenTimeOut, project, false, null);
 					} else {
-						cell.setup(cellURL, domain, userName, password, project);
+						cell.setup(cellURL, domain, userName, password, project, false, null);
 					}
 				} catch (JAXBException e) {
 					throw new I2B2InterfaceException("Unable to initiate "

@@ -75,9 +75,10 @@ public class PMCell implements Cell {
 	
 	private String token;
 	private long timeout;
+	private String proxyURL;
 
 	public void setup(String connectionURL, String domain, String userName,
-			String password, String projectId, boolean useProxy) throws JAXBException {
+			String password, String projectId, boolean useProxy, String proxyURL) throws JAXBException {
 		// Setup Parameters
 		this.connectionURL = connectionURL;
 		this.domain = domain;
@@ -85,6 +86,7 @@ public class PMCell implements Cell {
 		this.password = password;
 		this.projectId = projectId;
 		this.useProxy = useProxy;
+		this.proxyURL = proxyURL;
 
 		setup();
 
@@ -107,19 +109,20 @@ public class PMCell implements Cell {
 	 * 
 	 */
 	public void setup(String connectionURL, String domain, String userName,
-			String password, boolean useProxy) throws JAXBException {
+			String password, boolean useProxy, String proxyURL) throws JAXBException {
 		// Setup Parameters
 		this.connectionURL = connectionURL;
 		this.domain = domain;
 		this.userName = userName;
 		this.password = password;
 		this.useProxy = useProxy;
+		this.proxyURL = proxyURL;
 		
 		setup();
 
 	}
 	
-	public void setup(String connectionURL, String domain, String userName, String token, long timeout, String project, boolean useProxy) throws JAXBException {
+	public void setup(String connectionURL, String domain, String userName, String token, long timeout, String project, boolean useProxy, String proxyURL) throws JAXBException {
 		this.connectionURL = connectionURL;
 		this.domain = domain;
 		this.userName = userName;
@@ -127,6 +130,9 @@ public class PMCell implements Cell {
 		this.timeout = timeout;
 		this.projectId = project;
 		this.useProxy = useProxy;
+		this.proxyURL = proxyURL;
+		
+		setup();
 	}
 
 	/**
@@ -216,7 +222,7 @@ public class PMCell implements Cell {
 			boolean passwordToken, int tokenMsTimeout, String token,
 			String username) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		UserType ut = pmOF.createUserType();
 		ut.setDomain(domain);
@@ -259,7 +265,7 @@ public class PMCell implements Cell {
 	public void deleteUser(HttpClient client, String userName)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		StringWriter sw = new StringWriter();
 
 		rmt.getMessageBody().getAny().add(pmOF.createDeleteUser(userName));
@@ -285,7 +291,7 @@ public class PMCell implements Cell {
 	 */
 	public UsersType getAllUsers(HttpClient client) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		rmt.getMessageBody().getAny().add(pmOF.createGetAllUser(""));
 
@@ -315,7 +321,7 @@ public class PMCell implements Cell {
 	public UsersType getUser(HttpClient client, String userName)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		rmt.getMessageBody().getAny().add(pmOF.createGetUser(userName));
 		StringWriter sw = new StringWriter();
@@ -349,7 +355,7 @@ public class PMCell implements Cell {
 	public void setUserParam(HttpClient client, String userName,
 			String dataType, String name, String value) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		UserType ut = pmOF.createUserType();
 		ut.setUserName(userName);
@@ -387,7 +393,7 @@ public class PMCell implements Cell {
 	public void deleteUserParam(HttpClient client, String paramId)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		rmt.getMessageBody().getAny().add(pmOF.createDeleteUserParam(paramId));
 		StringWriter sw = new StringWriter();
 		pmMarshaller.marshal(pmOF.createRequest(rmt), sw);
@@ -415,7 +421,7 @@ public class PMCell implements Cell {
 	public UsersType getAllUserParam(HttpClient client, String userName)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		UserType ut = pmOF.createUserType();
 		ut.setUserName(userName);
 
@@ -446,7 +452,7 @@ public class PMCell implements Cell {
 	public ParamType getUserParam(HttpClient client, String userParam)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		rmt.getMessageBody().getAny().add(pmOF.createGetUserParam(userParam));
 
@@ -485,7 +491,7 @@ public class PMCell implements Cell {
 			String projectPath, int paramId, String paramDataType,
 			String paramName, String paramValue) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		GlobalDataType gdt = pmOF.createGlobalDataType();
 		gdt.setCanOverride(canOverride);
@@ -526,7 +532,7 @@ public class PMCell implements Cell {
 	public void deleteGlobal(HttpClient client, String globalId)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		rmt.getMessageBody().getAny().add(pmOF.createDeleteGlobal(globalId));
 		StringWriter sw = new StringWriter();
@@ -555,7 +561,7 @@ public class PMCell implements Cell {
 	public ParamsType getAllGlobal(HttpClient client, String projectPath)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		rmt.getMessageBody().getAny().add(pmOF.createGetAllGlobal(projectPath));
 
@@ -585,7 +591,7 @@ public class PMCell implements Cell {
 	public GlobalDatasType getGlobal(HttpClient client, String globalParameterId)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		rmt.getMessageBody().getAny()
 				.add(pmOF.createGetGlobal(globalParameterId));
 		StringWriter sw = new StringWriter();
@@ -617,7 +623,7 @@ public class PMCell implements Cell {
 	public void setRole(HttpClient client, String userName, String projectId,
 			String role) throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		RoleType rt = pmOF.createRoleType();
 		rt.setProjectId(projectId);
@@ -655,7 +661,7 @@ public class PMCell implements Cell {
 	public void deleteRole(HttpClient client, String userName,
 			String projectId, String role) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		RoleType rt = pmOF.createRoleType();
 		rt.setProjectId(projectId);
@@ -688,7 +694,7 @@ public class PMCell implements Cell {
 	public RolesType getAllRole(HttpClient client, String projectId)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		RoleType rt = pmOF.createRoleType();
 		rt.setProjectId(projectId);
@@ -723,7 +729,7 @@ public class PMCell implements Cell {
 	public RolesType getRole(HttpClient client, String projectId,
 			String userName) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		RoleType rt = pmOF.createRoleType();
 		rt.setProjectId(projectId);
@@ -764,7 +770,7 @@ public class PMCell implements Cell {
 			String userName, String paramDataType, String paramName,
 			String paramValue) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		ProjectType projt = pmOF.createProjectType();
 		projt.setId(id);
@@ -803,7 +809,7 @@ public class PMCell implements Cell {
 	public void deleteProjectUserParam(HttpClient client, String userParamId)
 			throws UnsupportedOperationException, I2B2InterfaceException,
 			IOException, JAXBException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		rmt.getMessageBody().getAny()
 				.add(pmOF.createDeleteProjectUserParam(userParamId));
 		StringWriter sw = new StringWriter();
@@ -832,7 +838,7 @@ public class PMCell implements Cell {
 	public ParamsType getAllProjectUserParam(HttpClient client,
 			String projectId, String userName) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		ProjectType pt = pmOF.createProjectType();
 		pt.setId(projectId);
@@ -865,7 +871,7 @@ public class PMCell implements Cell {
 	public ParamsType getProjectUserParam(HttpClient client, String paramId)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		rmt.getMessageBody().getAny()
 				.add(pmOF.createGetProjectUserParam(paramId));
 		StringWriter sw = new StringWriter();
@@ -901,7 +907,7 @@ public class PMCell implements Cell {
 			String projectName, String projectKey, String projectWiki,
 			String projectPath) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		ProjectType pt = pmOF.createProjectType();
 		pt.setId(projectId);
@@ -938,7 +944,7 @@ public class PMCell implements Cell {
 	public void deleteProject(HttpClient client, String projectId,
 			String projectPath) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		ProjectType pt = pmOF.createProjectType();
 		pt.setId(projectId);
@@ -968,7 +974,7 @@ public class PMCell implements Cell {
 	 */
 	public ProjectsType getAllProject(HttpClient client) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		ProjectType pt = pmOF.createProjectType();
 		rmt.getMessageBody().getAny().add(pmOF.createGetAllProject(pt));
 		StringWriter sw = new StringWriter();
@@ -1000,7 +1006,7 @@ public class PMCell implements Cell {
 	public ProjectType getProject(HttpClient client, String projectId,
 			String projectPath) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		ProjectType pt = pmOF.createProjectType();
 		pt.setId(projectId);
 		pt.setPath(projectPath);
@@ -1037,7 +1043,7 @@ public class PMCell implements Cell {
 			String paramDataType, String paramName, String paramValue)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		ProjectType pt = pmOF.createProjectType();
 		if (projectId != null) {
 			pt.setId(projectId);
@@ -1074,7 +1080,7 @@ public class PMCell implements Cell {
 	public void deleteProjectParam(HttpClient client, String paramId)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		rmt.getMessageBody().getAny()
 				.add(pmOF.createDeleteProjectParam(paramId));
 		StringWriter sw = new StringWriter();
@@ -1102,7 +1108,7 @@ public class PMCell implements Cell {
 	public ParamsType getAllProjectParam(HttpClient client, String projectId)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		rmt.getMessageBody().getAny()
 				.add(pmOF.createGetAllProjectParam(projectId));
 		StringWriter sw = new StringWriter();
@@ -1131,7 +1137,7 @@ public class PMCell implements Cell {
 	public ParamsType getProjectParam(HttpClient client, String paramId)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		rmt.getMessageBody().getAny().add(pmOF.createGetProjectParam(paramId));
 		StringWriter sw = new StringWriter();
 		pmMarshaller.marshal(pmOF.createRequest(rmt), sw);
@@ -1164,7 +1170,7 @@ public class PMCell implements Cell {
 	public void setHive(HttpClient client, String environment, String helpURL,
 			boolean active, String domainName) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		ConfigureType ct = pmOF.createConfigureType();
 		ct.setEnvironment(environment);
 		ct.setHelpURL(helpURL);
@@ -1196,7 +1202,7 @@ public class PMCell implements Cell {
 	public void deleteHive(HttpClient client, String hiveId)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		rmt.getMessageBody().getAny().add(pmOF.createDeleteHive(hiveId));
 		StringWriter sw = new StringWriter();
 		pmMarshaller.marshal(pmOF.createRequest(rmt), sw);
@@ -1221,7 +1227,7 @@ public class PMCell implements Cell {
 	 */
 	public ConfiguresType getAllHive(HttpClient client) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		rmt.getMessageBody().getAny().add(pmOF.createGetAllHive(null));
 		StringWriter sw = new StringWriter();
 		pmMarshaller.marshal(pmOF.createRequest(rmt), sw);
@@ -1249,7 +1255,7 @@ public class PMCell implements Cell {
 	public ConfigureType getHive(HttpClient client, String domainId)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		ConfigureType ct = pmOF.createConfigureType();
 		ct.setDomainId(domainId);
@@ -1287,7 +1293,7 @@ public class PMCell implements Cell {
 			String paramDataType, String paramName, String paramValue)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		ConfigureType ct = pmOF.createConfigureType();
 		ct.setDomainId(domainId);
@@ -1323,7 +1329,7 @@ public class PMCell implements Cell {
 	public void deleteHiveParam(HttpClient client, String paramId)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		rmt.getMessageBody().getAny().add(pmOF.createDeleteHiveParam(paramId));
 		StringWriter sw = new StringWriter();
@@ -1351,7 +1357,7 @@ public class PMCell implements Cell {
 	public ParamsType getAllHiveParam(HttpClient client, String hiveName)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		rmt.getMessageBody().getAny().add(pmOF.createGetAllHiveParam(hiveName));
 		StringWriter sw = new StringWriter();
@@ -1379,7 +1385,7 @@ public class PMCell implements Cell {
 	public ParamsType getHiveParam(HttpClient client, String hiveParamId)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		rmt.getMessageBody().getAny().add(pmOF.createGetHiveParam(hiveParamId));
 		StringWriter sw = new StringWriter();
 		pmMarshaller.marshal(pmOF.createRequest(rmt), sw);
@@ -1419,7 +1425,7 @@ public class PMCell implements Cell {
 			String cellName, String cellUrl, String cellSpecial,
 			String cellMethod, boolean cellCanOverride) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		CellDataType cdt = pmOF.createCellDataType();
 		cdt.setProjectPath(projectPath);
 		cdt.setId(cellId);
@@ -1457,7 +1463,7 @@ public class PMCell implements Cell {
 	public void deleteCell(HttpClient client, String cellId, String projectPath)
 			throws UnsupportedOperationException, I2B2InterfaceException,
 			IOException, JAXBException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		CellDataType cdt = pmOF.createCellDataType();
 		cdt.setId(cellId);
@@ -1487,7 +1493,7 @@ public class PMCell implements Cell {
 	 */
 	public CellDatasType getAllCell(HttpClient client) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		rmt.getMessageBody().getAny().add(pmOF.createGetAllCell(null));
 
 		StringWriter sw = new StringWriter();
@@ -1519,7 +1525,7 @@ public class PMCell implements Cell {
 	public CellDataType getCell(HttpClient client, String cellId,
 			String projectPath) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		CellDataType cdt = pmOF.createCellDataType();
 		cdt.setId(cellId);
 		cdt.setProjectPath(projectPath);
@@ -1558,7 +1564,7 @@ public class PMCell implements Cell {
 			String paramDataType, String paramName, String paramValue)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		CellDataType cdt = pmOF.createCellDataType();
 		cdt.setId(cellId);
 
@@ -1594,7 +1600,7 @@ public class PMCell implements Cell {
 	public void deleteCellParam(HttpClient client, String paramId)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		rmt.getMessageBody().getAny().add(pmOF.createDeleteCellParam(paramId));
 		StringWriter sw = new StringWriter();
@@ -1625,7 +1631,7 @@ public class PMCell implements Cell {
 	public ParamsType getAllCellParam(HttpClient client, String cellId,
 			String projectPath) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		CellDataType cdt = pmOF.createCellDataType();
 		cdt.setId(cellId);
@@ -1658,7 +1664,7 @@ public class PMCell implements Cell {
 	public ParamType getCellParam(HttpClient client, String paramId)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		rmt.getMessageBody().getAny().add(pmOF.createGetCellParam(paramId));
 		StringWriter sw = new StringWriter();
 		pmMarshaller.marshal(pmOF.createRequest(rmt), sw);
@@ -1684,7 +1690,7 @@ public class PMCell implements Cell {
 	public void setPassword(HttpClient client, String newPassword)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		rmt.getMessageBody().getAny().add(pmOF.createSetPassword(newPassword));
 
@@ -1725,7 +1731,7 @@ public class PMCell implements Cell {
 			GregorianCalendar activationDate, GregorianCalendar expirationDate)
 			throws DatatypeConfigurationException, JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		ApprovalType at = pmOF.createApprovalType();
 		at.setId(id);
 		at.setName(approvalName);
@@ -1763,7 +1769,7 @@ public class PMCell implements Cell {
 	public void deleteApproval(HttpClient client, String approvalId)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 
 		ApprovalType at = pmOF.createApprovalType();
 		at.setId(approvalId);
@@ -1792,7 +1798,7 @@ public class PMCell implements Cell {
 	public ApprovalsType getAllApproval(HttpClient client)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		rmt.getMessageBody().getAny().add(pmOF.createGetAllApproval(null));
 
 		StringWriter sw = new StringWriter();
@@ -1822,7 +1828,7 @@ public class PMCell implements Cell {
 	public ApprovalType getApproval(HttpClient client, String approvalId)
 			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
-		RequestMessageType rmt = createMinimumBaseMessage();
+		RequestMessageType rmt = createMinimumBaseMessage("");
 		ApprovalType at = pmOF.createApprovalType();
 		at.setId(approvalId);
 		rmt.getMessageBody().getAny().add(pmOF.createGetApproval(at));
@@ -1912,13 +1918,16 @@ public class PMCell implements Cell {
 			String urlAppend) throws UnsupportedOperationException, IOException {
 //		System.out.println(entity);
 		// Create Post
-		if((urlAppend.startsWith("/")) && (connectionURL.endsWith("/"))) {
-			urlAppend = urlAppend.substring(1);
+		String postURL = connectionURL;
+		
+		if(!this.useProxy) {
+			if ((urlAppend.startsWith("/")) && (connectionURL.endsWith("/"))) {
+				urlAppend = urlAppend.substring(1);
+			}
+			postURL = postURL + urlAppend;
 		}
-		
-		
-		
-		HttpPost post = new HttpPost(connectionURL + urlAppend);
+
+		HttpPost post = new HttpPost(postURL);
 		// Set Header
 		post.setHeader("Content-Type", "text/xml");
 		post.setEntity(new StringEntity(entity));
@@ -1927,15 +1936,6 @@ public class PMCell implements Cell {
 		return response.getEntity().getContent();
 	}
 
-	/**
-	 * Creates the minimum message needed to send a request to the i2b2 server
-	 * 
-	 * @return Request Message Base
-	 */
-	private RequestMessageType createMinimumBaseMessage() {
-		return createMinimumBaseMessage(null);
-	}
-	
 	/**
 	 * Creates the minimum message needed to send a request to the i2b2 server
 	 * 
@@ -1951,7 +1951,7 @@ public class PMCell implements Cell {
 		// Set proxy
 		if((useProxy) && (appendURL != null)) {
 			Proxy proxy = new Proxy();
-			proxy.setRedirect_url("http://127.0.0.1:9090/i2b2/services/PMService" + appendURL);
+			proxy.setRedirect_url(this.proxyURL + appendURL);
 			mht.setProxy(proxy);
 		}
 		

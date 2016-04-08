@@ -27,11 +27,13 @@ public interface Cell {
 	 *            Password
 	 * @param projectId
 	 *            Project ID
+	 * @param useProxy Use a proxy
+	 * @param proxyURL URL of the proxy if used
 	 * @throws JAXBException
 	 *             An Exception Occurred
 	 */
 	public void setup(String connectionURL, String domain, String userName,
-			String password, String projectId, boolean useProxy) throws JAXBException;
+			String password, String projectId, boolean useProxy, String proxyURL) throws JAXBException;
 
 	/**
 	 * Sets up all needed parameters to communicate with the implementing
@@ -49,9 +51,11 @@ public interface Cell {
 	 *            i2b2 token timeout time
 	 * @param projectId
 	 *            Project Id
+	 * @param useProxy Use a proxy
+	 * @param proxyURL URL of the proxy if used
 	 * @throws JAXBException
 	 *             An Exception Occurred
 	 */
 	public void setup(String connectionURL, String domain, String userName,
-			String token, long timeout, String projectId, boolean useProxy) throws JAXBException;
+			String token, long timeout, String projectId, boolean useProxy, String proxyURL) throws JAXBException;
 }
