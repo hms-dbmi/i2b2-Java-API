@@ -62,6 +62,7 @@ import edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.AnalysisDefinitionRequestType;
 import edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.AnalysisDefinitionType;
 import edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.CrcXmlResultResponseType;
 import edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.InstanceRequestType;
+import edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.InstanceResponseType;
 import edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.InstanceResultResponseType;
 import edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.MasterDeleteRequestType;
 import edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.MasterInstanceResultResponseType;
@@ -98,9 +99,9 @@ public class CRCCell implements Cell {
 	private static Marshaller psmMarshaller;
 
 	// Loader
-	private static edu.harvard.hms.dbmi.i2b2.api.crc.xml.loader.ObjectFactory loaderOF;
-	private static JAXBContext loaderJC;
-	private static Marshaller loaderMarshaller;
+//	private static edu.harvard.hms.dbmi.i2b2.api.crc.xml.loader.ObjectFactory loaderOF;
+//	private static JAXBContext loaderJC;
+//	private static Marshaller loaderMarshaller;
 
 	// Connection and Configuration Parameters
 	private String domain;
@@ -122,8 +123,6 @@ public class CRCCell implements Cell {
 		this.connectionURL = connectionURL;
 		this.domain = domain;
 		this.userName = userName;
-		this.token = token;
-		this.timeout = timeout;
 		this.projectId = projectId;
 		this.useProxy = useProxy;	
 		this.proxyURL = proxyURL;
@@ -166,16 +165,34 @@ public class CRCCell implements Cell {
 		psmMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 
 		// Setup Loader
-		loaderOF = new edu.harvard.hms.dbmi.i2b2.api.crc.xml.loader.ObjectFactory();
-		loaderJC = JAXBContext
-				.newInstance("edu.harvard.hms.dbmi.i2b2.api.crc.xml.loader");
-		loaderMarshaller = loaderJC.createMarshaller();
-		loaderMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+//		loaderOF = new edu.harvard.hms.dbmi.i2b2.api.crc.xml.loader.ObjectFactory();
+//		loaderJC = JAXBContext
+//				.newInstance("edu.harvard.hms.dbmi.i2b2.api.crc.xml.loader");
+//		loaderMarshaller = loaderJC.createMarshaller();
+//		loaderMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 	}
 
 	// -------------------------------------------------------------------------
 	// PSM Calls
 	// -------------------------------------------------------------------------
+	
+	public InstanceResponseType getQueryInstanceListFromQueryId(
+			HttpClient client, String queryMasterId) throws JAXBException,
+			ClientProtocolException, I2B2InterfaceException, IOException {
+		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.RequestMessageType rmt = createMinimumPSMBaseMessage(edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.PsmRequestTypeType.CRC_QRY_GET_QUERY_INSTANCE_LIST_FROM_QUERY_MASTER_ID, "/request");
+		
+		MasterRequestType mrt = psmOF.createMasterRequestType();
+		mrt.setQueryMasterId(queryMasterId);
+		rmt.getMessageBody().getAny().add(psmOF.createRequest(mrt));
+
+		StringWriter sw = new StringWriter();
+		psmMarshaller.marshal(psmOF.createHiveRequest(rmt), sw);
+		
+		return (InstanceResponseType) getPSMResponseType(runRequest(client,
+				sw.toString(), "/request"));
+	}
+	
+	//
 	/**
 	 * Returns the query definition information for a given query master id
 	 * 
@@ -993,8 +1010,6 @@ public class CRCCell implements Cell {
 
 	private InputStream runRequest(HttpClient client, String entity,
 			String urlAppend) throws ClientProtocolException, IOException {
-		
-		
 		// Create Post
 		String postURL = connectionURL;
 		
@@ -1149,12 +1164,10 @@ public class CRCCell implements Cell {
 				.createPsmQryHeaderType();
 		pqht.setRequestType(requestPSMType);
 
-		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.UserType ut = psmOF
-				.createUserType();
+		edu.harvard.hms.dbmi.i2b2.api.crc.xml.psm.UserType ut = psmOF.createUserType();
 		// <user group="Demo" login="Demo">Demo</user>
-		ut.setGroup("Demo");
-		ut.setLogin("Demo");
-		ut.setValue("Demo");
+		ut.setLogin(this.userName);
+		ut.setValue(this.userName);
 		pqht.setUser(ut);
 
 		bt.getAny().add(psmOF.createPsmheader(pqht));
