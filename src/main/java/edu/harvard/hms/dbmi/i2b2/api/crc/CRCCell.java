@@ -3,10 +3,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package edu.harvard.hms.dbmi.i2b2.api.crc;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.GregorianCalendar;
@@ -142,8 +140,19 @@ public class CRCCell implements Cell {
 		this.useProxy = useProxy;
 		this.proxyURL = proxyURL;
 		setup();
-	}	
-
+	}
+	
+	@Override
+	public void setupConnection(String connectionURL, String domain, String userName,
+			String password, String projectId, boolean useProxy, String proxyURL) {
+		this.connectionURL = connectionURL;
+		this.domain = domain;
+		this.userName = userName;
+		this.projectId = projectId;
+		this.useProxy = useProxy;	
+		this.proxyURL = proxyURL;
+	}
+	
 	/**
 	 * Sets up the system without any parameters of the Data Repository Cell
 	 * 

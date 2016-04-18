@@ -76,7 +76,7 @@ public class ONTCell implements Cell {
 	private String projectId;
 	private String connectionURL;
 	private boolean useProxy;
-	
+
 	private String token;
 	private long timeout;
 	private String proxyURL;
@@ -100,7 +100,8 @@ public class ONTCell implements Cell {
 	 *             An Exception Occurred
 	 */
 	public void setup(String connectionURL, String domain, String userName,
-			String password, String projectId, boolean useProxy, String proxyURL) throws JAXBException {
+			String password, String projectId, boolean useProxy, String proxyURL)
+			throws JAXBException {
 		// Setup Parameters
 		this.connectionURL = connectionURL;
 		this.domain = domain;
@@ -112,8 +113,10 @@ public class ONTCell implements Cell {
 		// Setup System
 		setup();
 	}
-	
-	public void setup(String connectionURL, String domain, String userName, String token, long timeout, String project, boolean useProxy, String proxyURL) throws JAXBException {
+
+	public void setup(String connectionURL, String domain, String userName,
+			String token, long timeout, String project, boolean useProxy,
+			String proxyURL) throws JAXBException {
 		this.connectionURL = connectionURL;
 		this.domain = domain;
 		this.userName = userName;
@@ -124,6 +127,21 @@ public class ONTCell implements Cell {
 		this.proxyURL = proxyURL;
 		// Setup System
 		setup();
+	}
+
+	@Override
+	public void setupConnection(String connectionURL, String domain,
+			String userName, String password, String projectId,
+			boolean useProxy, String proxyURL) {
+		// Setup Parameters
+		this.connectionURL = connectionURL;
+		this.domain = domain;
+		this.userName = userName;
+		this.password = password;
+		this.projectId = projectId;
+		this.useProxy = useProxy;
+		this.proxyURL = proxyURL;
+
 	}
 
 	/**
@@ -139,8 +157,6 @@ public class ONTCell implements Cell {
 		ontMarshaller = ontJC.createMarshaller();
 		ontMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 	}
-	
-	
 
 	/**
 	 * Returns a list of categories available for a given user.
@@ -300,7 +316,7 @@ public class ONTCell implements Cell {
 		if (max != -1) {
 			vrt.setMax(max);
 		}
-		if(self != null) {
+		if (self != null) {
 			vrt.setSelf(self);
 		}
 		vrt.setSynonyms(synonyms);
@@ -345,20 +361,20 @@ public class ONTCell implements Cell {
 	 *             An IO Exception occurred
 	 */
 	public ConceptsType getTermInfo(HttpClient client, boolean blob,
-			String self, boolean hidden, int max, boolean synonyms,
-			String type) throws JAXBException, UnsupportedOperationException,
+			String self, boolean hidden, int max, boolean synonyms, String type)
+			throws JAXBException, UnsupportedOperationException,
 			I2B2InterfaceException, IOException {
 		RequestMessageType rmt = createMinimumBaseMessage("/getTermInfo");
 
 		GetTermInfoType gtit = ontOF.createGetTermInfoType();
-		
+
 		gtit.setBlob(blob);
 		gtit.setHiddens(hidden);
 		gtit.setSynonyms(synonyms);
 		gtit.setType(type);
 		gtit.setMax(max);
 		gtit.setSelf(self);
-		
+
 		rmt.getMessageBody().getAny().add(ontOF.createGetTermInfo(gtit));
 
 		// Mashall the XML to String and attach it to the post request
@@ -449,26 +465,26 @@ public class ONTCell implements Cell {
 
 		VocabRequestType vrt = ontOF.createVocabRequestType();
 		vrt.setBlob(blob);
-		if(category != null) {
+		if (category != null) {
 			vrt.setCategory(category);
 		}
 		vrt.setHiddens(hidden);
-		
+
 		MatchStrType mst = ontOF.createMatchStrType();
-		if(strategy != null) {
+		if (strategy != null) {
 			mst.setStrategy(strategy);
 		}
 		mst.setValue(matchStr);
 		vrt.setMatchStr(mst);
-		
-		if(max != -1) {
+
+		if (max != -1) {
 			vrt.setMax(max);
 		}
-		
-		if(self != null ) {
+
+		if (self != null) {
 			vrt.setSelf(self);
 		}
-		
+
 		vrt.setSynonyms(synonyms);
 		vrt.setType(type);
 
@@ -786,8 +802,8 @@ public class ONTCell implements Cell {
 	 *             An IO Exception occurred
 	 */
 	public ModifiersType getModifiers(HttpClient client, boolean blob,
-			boolean hidden, String strategy, int max,
-			String self, boolean synonyms, String type) throws JAXBException,
+			boolean hidden, String strategy, int max, String self,
+			boolean synonyms, String type) throws JAXBException,
 			UnsupportedOperationException, I2B2InterfaceException, IOException {
 		RequestMessageType rmt = createMinimumBaseMessage("/getModifiers");
 
@@ -799,7 +815,7 @@ public class ONTCell implements Cell {
 		}
 		gmt.setSelf(self);
 		gmt.setSynonyms(synonyms);
-		if(type != null) {
+		if (type != null) {
 			gmt.setType(type);
 		}
 		rmt.getMessageBody().getAny().add(ontOF.createGetModifiers(gmt));
@@ -1111,10 +1127,10 @@ public class ONTCell implements Cell {
 		return ((JAXBElement<T>) rmt.getMessageBody().getAny().get(0))
 				.getValue();
 	}
-	
+
 	private String convertStreamToString(java.io.InputStream is) {
-	    java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
-	    return s.hasNext() ? s.next() : "";
+		java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+		return s.hasNext() ? s.next() : "";
 	}
 
 	/**
@@ -1155,12 +1171,12 @@ public class ONTCell implements Cell {
 	 */
 	private InputStream runRequest(HttpClient client, String entity,
 			String urlAppend) throws UnsupportedOperationException, IOException {
-//		System.out.println(entity);
+		// System.out.println(entity);
 		// Create Post
-		
+
 		String postURL = connectionURL;
-		
-		if(!this.useProxy) {
+
+		if (!this.useProxy) {
 			if ((urlAppend.startsWith("/")) && (connectionURL.endsWith("/"))) {
 				urlAppend = urlAppend.substring(1);
 			}
@@ -1175,7 +1191,7 @@ public class ONTCell implements Cell {
 		HttpResponse response = client.execute(post);
 		return response.getEntity().getContent();
 	}
-	
+
 	/**
 	 * Creates the minimum message needed to send a request to the i2b2 server
 	 * 
@@ -1188,12 +1204,12 @@ public class ONTCell implements Cell {
 		MessageHeaderType mht = ontOF.createMessageHeaderType();
 
 		// Set proxy
-		if((useProxy) && (appendURL != null)) {
+		if ((useProxy) && (appendURL != null)) {
 			Proxy proxy = new Proxy();
 			proxy.setRedirect_url(this.proxyURL + appendURL);
 			mht.setProxy(proxy);
 		}
-				
+
 		// Set Sending Application
 		ApplicationType sat = ontOF.createApplicationType();
 		sat.setApplicationName("IRCT");
@@ -1211,10 +1227,10 @@ public class ONTCell implements Cell {
 		SecurityType st = ontOF.createSecurityType();
 		st.setDomain(this.domain);
 		st.setUsername(this.userName);
-		
+
 		PasswordType pt = ontOF.createPasswordType();
-		
-		if(this.password != null) {
+
+		if (this.password != null) {
 			pt.setValue(this.password);
 		} else {
 			pt.setIsToken(true);
@@ -1341,5 +1357,4 @@ public class ONTCell implements Cell {
 	public void setUseProxy(boolean useProxy) {
 		this.useProxy = useProxy;
 	}
-
 }

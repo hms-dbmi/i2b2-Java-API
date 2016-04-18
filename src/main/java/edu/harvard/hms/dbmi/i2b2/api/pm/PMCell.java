@@ -69,7 +69,6 @@ public class PMCell implements Cell {
 	private String domain;
 	private String userName;
 	private String password;
-	private String projectId;
 	private String connectionURL;
 	private boolean useProxy;
 	
@@ -84,7 +83,6 @@ public class PMCell implements Cell {
 		this.domain = domain;
 		this.userName = userName;
 		this.password = password;
-		this.projectId = projectId;
 		this.useProxy = useProxy;
 		this.proxyURL = proxyURL;
 
@@ -122,17 +120,30 @@ public class PMCell implements Cell {
 
 	}
 	
-	public void setup(String connectionURL, String domain, String userName, String token, long timeout, String project, boolean useProxy, String proxyURL) throws JAXBException {
+	@Override
+	public void setup(String connectionURL, String domain, String userName, String password, long timeout, String project, boolean useProxy, String proxyURL) throws JAXBException {
 		this.connectionURL = connectionURL;
 		this.domain = domain;
 		this.userName = userName;
-		this.token = token;
-		this.timeout = timeout;
-		this.projectId = project;
+		this.password = password;
 		this.useProxy = useProxy;
 		this.proxyURL = proxyURL;
 		
 		setup();
+	}
+	
+	@Override
+	public void setupConnection(String connectionURL, String domain,
+			String userName, String password, String projectId,
+			boolean useProxy, String proxyURL) {
+		// Setup Parameters
+		this.connectionURL = connectionURL;
+		this.domain = domain;
+		this.userName = userName;
+		this.password = password;
+		this.useProxy = useProxy;
+		this.proxyURL = proxyURL;
+
 	}
 
 	/**
@@ -1873,10 +1884,10 @@ public class PMCell implements Cell {
 				.getValue();
 	}
 	
-	static String convertStreamToString(java.io.InputStream is) {
-	    java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
-	    return s.hasNext() ? s.next() : "";
-	}
+//	static String convertStreamToString(java.io.InputStream is) {
+//	    java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+//	    return s.hasNext() ? s.next() : "";
+//	}
 
 	/**
 	 * Check for any errors and throw an exception if they occur
@@ -2055,25 +2066,6 @@ public class PMCell implements Cell {
 	 */
 	public void setPassword(String password) {
 		this.password = password;
-	}
-
-	/**
-	 * Returns the project id
-	 * 
-	 * @return Project Id
-	 */
-	public String getProjectId() {
-		return projectId;
-	}
-
-	/**
-	 * Sets the project Id
-	 * 
-	 * @param projectId
-	 *            Project Id
-	 */
-	public void setProjectId(String projectId) {
-		this.projectId = projectId;
 	}
 
 	/**
