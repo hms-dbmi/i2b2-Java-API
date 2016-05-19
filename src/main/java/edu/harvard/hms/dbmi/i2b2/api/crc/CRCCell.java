@@ -148,6 +148,7 @@ public class CRCCell implements Cell {
 		this.connectionURL = connectionURL;
 		this.domain = domain;
 		this.userName = userName;
+		this.password = password;
 		this.projectId = projectId;
 		this.useProxy = useProxy;	
 		this.proxyURL = proxyURL;
@@ -1018,7 +1019,8 @@ public class CRCCell implements Cell {
 	}
 
 	private InputStream runRequest(HttpClient client, String entity,
-			String urlAppend) throws ClientProtocolException, IOException {
+			String urlAppend) throws ClientProtocolException, IOException, I2B2InterfaceException {
+		
 		// Create Post
 		String postURL = connectionURL;
 		
@@ -1030,11 +1032,15 @@ public class CRCCell implements Cell {
 		}
 
 		HttpPost post = new HttpPost(postURL);
+		
 		// Set Header
 		post.setHeader("Content-Type", "text/xml");
 		post.setEntity(new StringEntity(entity));
 
 		HttpResponse response = client.execute(post);
+		if((response.getStatusLine() != null) &&  (response.getStatusLine().getStatusCode() != 200)) {
+			throw new I2B2InterfaceException("Non 200 response from PM Server");
+		}
 		return response.getEntity().getContent();
 
 	}

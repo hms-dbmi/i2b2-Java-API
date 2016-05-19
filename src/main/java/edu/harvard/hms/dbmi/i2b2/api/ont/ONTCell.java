@@ -1168,10 +1168,10 @@ public class ONTCell implements Cell {
 	 *             An unsupported operation exception occurred
 	 * @throws IOException
 	 *             An IO Exception occurred
+	 * @throws I2B2InterfaceException 
 	 */
 	private InputStream runRequest(HttpClient client, String entity,
-			String urlAppend) throws UnsupportedOperationException, IOException {
-		// System.out.println(entity);
+			String urlAppend) throws UnsupportedOperationException, IOException, I2B2InterfaceException {
 		// Create Post
 
 		String postURL = connectionURL;
@@ -1189,6 +1189,10 @@ public class ONTCell implements Cell {
 		post.setEntity(new StringEntity(entity));
 
 		HttpResponse response = client.execute(post);
+		if((response.getStatusLine() != null) &&  (response.getStatusLine().getStatusCode() != 200)) {
+			throw new I2B2InterfaceException("Non 200 response from PM Server");
+		}
+		
 		return response.getEntity().getContent();
 	}
 

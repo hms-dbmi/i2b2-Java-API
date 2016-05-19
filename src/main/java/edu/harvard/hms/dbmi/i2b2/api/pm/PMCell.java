@@ -195,7 +195,7 @@ public class PMCell implements Cell {
 		pmMarshaller.marshal(pmOF.createRequest(rmt), sw);
 
 		return getType(new ConfigureType(),
-				runRequest(client, sw.toString(), ""));
+				runRequest(client, sw.toString(), "/getServices"));
 	}
 
 	/**
@@ -1870,7 +1870,8 @@ public class PMCell implements Cell {
 	@SuppressWarnings("unchecked")
 	private <T> T getType(T returnType, InputStream inputStream)
 			throws I2B2InterfaceException {
-//		System.out.println("!" + convertStreamToString(inputStream));
+//		System.out.println(convertStreamToString(inputStream));
+		
 		ResponseMessageType rmt = JAXB.unmarshal(inputStream,
 				ResponseMessageType.class);
 		String status = rmt.getResponseHeader().getResultStatus().getStatus()
@@ -1884,11 +1885,11 @@ public class PMCell implements Cell {
 				.getValue();
 	}
 	
-//	static String convertStreamToString(java.io.InputStream is) {
-//	    java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
-//	    return s.hasNext() ? s.next() : "";
-//	}
-
+	static String convertStreamToString(java.io.InputStream is) {
+	    java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+	    return s.hasNext() ? s.next() : "";
+	}
+	
 	/**
 	 * Check for any errors and throw an exception if they occur
 	 * 
@@ -1924,10 +1925,10 @@ public class PMCell implements Cell {
 	 *             An unsupported operation exception occurred
 	 * @throws IOException
 	 *             An IO exception occurred An IO Exception occurred
+	 * @throws I2B2Exception 
 	 */
 	private InputStream runRequest(HttpClient client, String entity,
-			String urlAppend) throws UnsupportedOperationException, IOException {
-//		System.out.println(entity);
+			String urlAppend) throws UnsupportedOperationException, IOException, I2B2InterfaceException {
 		// Create Post
 		String postURL = connectionURL;
 		
@@ -1937,13 +1938,16 @@ public class PMCell implements Cell {
 			}
 			postURL = postURL + urlAppend;
 		}
-
+		
 		HttpPost post = new HttpPost(postURL);
 		// Set Header
 		post.setHeader("Content-Type", "text/xml");
 		post.setEntity(new StringEntity(entity));
 
 		HttpResponse response = client.execute(post);
+		if((response.getStatusLine() != null) &&  (response.getStatusLine().getStatusCode() != 200)) {
+			throw new I2B2InterfaceException("Non 200 response from PM Server");
+		}
 		return response.getEntity().getContent();
 	}
 
