@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>edu.harvard.hms.dbmi.i2b2</groupId>
 	<artifactId>i2b2-Java-API</artifactId>
-	<version>1.0-Development</version>
+	<version>1.0</version>
 	<name>i2b2-Java-API</name>
 	<description>Java classes to abstract i2b2 XML communication</description>
 
