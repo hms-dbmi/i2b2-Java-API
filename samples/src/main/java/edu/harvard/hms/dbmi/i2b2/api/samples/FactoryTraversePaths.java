@@ -161,9 +161,9 @@ public class FactoryTraversePaths {
 			String connectionURL, String project) throws I2B2InterfaceException {
 		I2B2Factory i2b2Factory = new I2B2Factory();
 		i2b2Factory.setup();
-		i2b2Factory.login(connectionURL, domain, userName, password);
+		i2b2Factory.login(connectionURL, domain, userName, password, false);
 		
-		ontCell = (ONTCell) i2b2Factory.getCell("ONT", project);
+		ontCell = (ONTCell) i2b2Factory.getCell("ONT", project, true);
 	}
 
 	/**

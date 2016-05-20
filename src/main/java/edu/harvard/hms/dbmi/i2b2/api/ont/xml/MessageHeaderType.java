@@ -50,6 +50,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @XmlType(name = "message_headerType", namespace = "http://www.i2b2.org/xsd/hive/msg/1.1/", propOrder = {
     "i2B2VersionCompatible",
     "hl7VersionCompatible",
+    "proxy",
     "sendingApplication",
     "sendingFacility",
     "receivingApplication",
@@ -70,7 +71,9 @@ public class MessageHeaderType {
     protected BigDecimal i2B2VersionCompatible;
     @XmlElement(name = "hl7_version_compatible", required = true)
     protected BigDecimal hl7VersionCompatible;
-    @XmlElement(name = "sending_application", required = true)
+    @XmlElement(name = "proxy", required = true)
+	private Proxy proxy;
+    @XmlElement(name = "sending_application", required = false)
     protected ApplicationType sendingApplication;
     @XmlElement(name = "sending_facility", required = true)
     protected FacilityType sendingFacility;
@@ -146,7 +149,15 @@ public class MessageHeaderType {
         this.hl7VersionCompatible = value;
     }
 
-    /**
+    public Proxy getProxy() {
+		return proxy;
+	}
+
+	public void setProxy(Proxy proxy) {
+		this.proxy = proxy;
+	}
+
+	/**
      * Gets the value of the sendingApplication property.
      * 
      * @return

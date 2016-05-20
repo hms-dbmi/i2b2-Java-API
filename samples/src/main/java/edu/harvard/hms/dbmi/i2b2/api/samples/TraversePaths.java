@@ -157,7 +157,7 @@ public class TraversePaths {
 	 */
 	private void setup(String userName, String domain, String password,
 			String ontologyCellURL, String project) throws JAXBException {
-		ontCell.setup(ontologyCellURL, domain, userName, password, project);
+		ontCell.setup(ontologyCellURL, domain, userName, password, project, false, null);
 	}
 
 	/**

@@ -24,6 +24,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *       &lt;sequence>
  *         &lt;element name="i2b2_version_compatible" type="{http://www.i2b2.org/xsd/hive/msg/1.1/}decimal"/>
  *         &lt;element name="hl7_version_compatible" type="{http://www.i2b2.org/xsd/hive/msg/1.1/}decimal"/>
+ *         &lt;element name="proxy" type="{http://www.i2b2.org/xsd/hive/msg/1.1/}proxy"/>
  *         &lt;element name="sending_application" type="{http://www.i2b2.org/xsd/hive/msg/1.1/}applicationType"/>
  *         &lt;element name="sending_facility" type="{http://www.i2b2.org/xsd/hive/msg/1.1/}facilityType"/>
  *         &lt;element name="receiving_application" type="{http://www.i2b2.org/xsd/hive/msg/1.1/}applicationType"/>
@@ -49,6 +50,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @XmlType(name = "message_headerType", namespace = "http://www.i2b2.org/xsd/hive/msg/1.1/", propOrder = {
     "i2B2VersionCompatible",
     "hl7VersionCompatible",
+    "proxy",
     "sendingApplication",
     "sendingFacility",
     "receivingApplication",
@@ -69,6 +71,8 @@ public class MessageHeaderType {
     protected BigDecimal i2B2VersionCompatible;
     @XmlElement(name = "hl7_version_compatible", required = true)
     protected BigDecimal hl7VersionCompatible;
+    @XmlElement(name = "proxy", required = false)
+	private Proxy proxy;
     @XmlElement(name = "sending_application", required = true)
     protected ApplicationType sendingApplication;
     @XmlElement(name = "sending_facility", required = true)
@@ -146,6 +150,20 @@ public class MessageHeaderType {
     }
 
     /**
+	 * @return the proxy
+	 */
+	public Proxy getProxy() {
+		return proxy;
+	}
+
+	/**
+	 * @param proxy the proxy to set
+	 */
+	public void setProxy(Proxy proxy) {
+		this.proxy = proxy;
+	}
+
+	/**
      * Gets the value of the sendingApplication property.
      * 
      * @return
